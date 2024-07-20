@@ -1,0 +1,6 @@
+@react_chat_app_backend_HostAddress = http://localhost:5046
+
+GET {{react_chat_app_backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
