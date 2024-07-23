@@ -24,8 +24,11 @@ public class WebSocketController : ControllerBase
         }
     }
     
-    private void RegisterConnection(string userId, WebSocket webSocket) 
+    private void RegisterConnection(WebSocket webSocket, byte[] buffer)
     {
+        var registerData = GetModelData<RegisterData>(buffer);
+        var userId = registerData.userId;
+        
         if (_connections.ContainsKey(userId)) 
         {
             Console.WriteLine("this connection is already registered");
@@ -34,7 +37,6 @@ public class WebSocketController : ControllerBase
         {
             _connections.Add(userId, webSocket);
             Console.WriteLine($"Registered: user: {userId}, {webSocket.State}");
-            Console.WriteLine("amount of current connections: " + _connections.Count);
         }
     }
 
@@ -50,62 +52,67 @@ public class WebSocketController : ControllerBase
             new ArraySegment<byte>(buffer), CancellationToken.None);
     }
 
-    private async Task ForwardMessage(WebSocket webSocket, byte[] buffer)
+    private async Task ForwardMessage(byte[] buffer)
     {
         var message = GetModelData<MessageData>(buffer);
         var receiverId = message.receiverId;
-        var receiverWebSocket = _connections?[receiverId];
-
-        if (receiverWebSocket == null)
+        var isReceiverConnected =_connections.TryGetValue(receiverId, out var receiverSocket);
+        
+        if (isReceiverConnected == false)
         {
             // no socket found for this userId
-           // continue;
+            return;
         }
 
-        message.text = $"Forwarded message from: {message.senderId} to {message.receiverId}. {message.text}";
-            
-        Encoding utf8Encoding = Encoding.UTF8;
-        buffer = utf8Encoding.GetBytes(message.text);
-            
-        // await receiverWebSocket.SendAsync(
-        //     new ArraySegment<byte>(buffer, 0, buffer.Length),
-        //     receiveResult.MessageType,
-        //     receiveResult.EndOfMessage,
-        //     CancellationToken.None);
+        await receiverSocket.SendAsync(
+            new ArraySegment<byte>(buffer, 0, buffer.Length),
+            WebSocketMessageType.Binary,
+            true,
+            CancellationToken.None
+        );
+    }
+
+    private async Task SendResponse(WebSocket webSocket, string json)
+    {
+        var buffer = Encoding.UTF8.GetBytes(json);
+        
+        await webSocket.SendAsync(
+            new ArraySegment<byte>(buffer, 0, buffer.Length),
+            WebSocketMessageType.Binary,
+            true,
+            CancellationToken.None
+            );
     }
 
     private async Task HandleMessage(WebSocket webSocket)
     {
-        var buffer = new byte[1024 * 4];
-        var receiveResult = await GetReceiveResult(buffer, webSocket);
-        var registerMessage = GetModelData<RegisterData>(buffer);
-        
-        if (registerMessage.type == "register")
+        while (true)
         {
-            RegisterConnection(registerMessage.userId, webSocket);
-        }
-        else
-        {
-            Console.WriteLine(" this is not a register message ");
-        }
-        
-        while (!receiveResult.CloseStatus.HasValue)
-        {
-            buffer = new byte[1024 * 4];
-            receiveResult = await GetReceiveResult(buffer, webSocket);
-
-            var message = GetModelData<ModelType>(buffer);
+            var buffer = new byte[1024 * 4];
             
-            if (message.type == "message")
+            var receiveResult = await GetReceiveResult(buffer, webSocket);
+            if (receiveResult.CloseStatus.HasValue)
             {
-                await ForwardMessage(webSocket, buffer);
+                await webSocket.CloseAsync(
+                    receiveResult.CloseStatus.Value,
+                    receiveResult.CloseStatusDescription,
+                    CancellationToken.None);
+                break;   
+            }
+            
+            var message = GetModelData<ModelType>(buffer);
+            switch (message.type)
+            {
+                case "textMessage": 
+                    await ForwardMessage(buffer);
+                    await SendResponse(webSocket, "{ \"isDelivered\":\"true\" }");
+                    break;
+                case "register":
+                    RegisterConnection(webSocket, buffer);
+                    await SendResponse(webSocket, "{ \"isRegistered\":\"true\" }");
+                    break;
             }
         }
-
-        await webSocket.CloseAsync(
-            receiveResult.CloseStatus.Value,
-            receiveResult.CloseStatusDescription,
-            CancellationToken.None);
     }
     
 }
