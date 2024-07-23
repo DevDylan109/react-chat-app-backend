@@ -52,24 +52,33 @@ public class WebSocketController : ControllerBase
             new ArraySegment<byte>(buffer), CancellationToken.None);
     }
 
+    private int GetLengthWithoutPadding(byte[] buffer)
+    {
+        var i = buffer.Length - 1;
+        
+        while (i >= 0 && buffer[i] == 0)
+            i--;
+
+        return i + 1;
+    }
+
     private async Task ForwardMessage(byte[] buffer)
     {
         var message = GetModelData<MessageData>(buffer);
         var receiverId = message.receiverId;
         var isReceiverConnected =_connections.TryGetValue(receiverId, out var receiverSocket);
         
-        if (isReceiverConnected == false)
+        if (isReceiverConnected)
         {
-            // no socket found for this userId
-            return;
+            var bufferLength = GetLengthWithoutPadding(buffer);
+            
+            await receiverSocket.SendAsync(
+                new ArraySegment<byte>(buffer, 0, bufferLength),
+                WebSocketMessageType.Text,
+                true,
+                CancellationToken.None
+            );
         }
-
-        await receiverSocket.SendAsync(
-            new ArraySegment<byte>(buffer, 0, buffer.Length),
-            WebSocketMessageType.Binary,
-            true,
-            CancellationToken.None
-        );
     }
 
     private async Task SendResponse(WebSocket webSocket, string json)
@@ -78,7 +87,7 @@ public class WebSocketController : ControllerBase
         
         await webSocket.SendAsync(
             new ArraySegment<byte>(buffer, 0, buffer.Length),
-            WebSocketMessageType.Binary,
+            WebSocketMessageType.Text,
             true,
             CancellationToken.None
             );
