@@ -2,6 +2,8 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using react_chat_app_backend.Context;
 using react_chat_app_backend.Models;
 
 namespace react_chat_app_backend.Controllers;
@@ -9,12 +11,21 @@ namespace react_chat_app_backend.Controllers;
 public class WebSocketController : ControllerBase
 {
     private static Dictionary<string, WebSocket> _connections = new ();
+    private AppDbContext _appDbContext;
     
+    public WebSocketController(AppDbContext dbContext)
+    {
+        _appDbContext = dbContext;
+    }
+
     [Route("/ws")]
     public async Task Get()
     {
         if (HttpContext.WebSockets.IsWebSocketRequest)
         {
+            _appDbContext.Messages.Add(new MessageData { receiverId = "test2", senderId = "TEst3", text = "Test4" });
+            await _appDbContext.SaveChangesAsync();
+            
             using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
             await HandleMessage(webSocket);
         }
@@ -93,6 +104,19 @@ public class WebSocketController : ControllerBase
             );
     }
 
+    private async Task FetchMessageHistory(WebSocket webSocket)
+    {
+        var messages =_appDbContext.Messages.ToString();
+        var buffer = Encoding.UTF8.GetBytes(messages);
+
+        await webSocket.SendAsync(
+            new ArraySegment<byte>(buffer, 0, buffer.Length),
+            WebSocketMessageType.Text,
+            true,
+            CancellationToken.None
+            );
+    }
+
     private async Task HandleMessage(WebSocket webSocket)
     {
         while (true)
@@ -118,7 +142,10 @@ public class WebSocketController : ControllerBase
                     break;
                 case "register":
                     RegisterConnection(webSocket, buffer);
-                    await SendResponse(webSocket, "{ \"isRegistered\":\"true\" }");
+                    await SendResponse(webSocket, "{ \"isRegistered\":\"true\" }"); 
+                    break;
+                case "messageHistory":
+                    await FetchMessageHistory(webSocket);
                     break;
             }
         }
