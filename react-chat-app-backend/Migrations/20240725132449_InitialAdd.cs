@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace react_chat_app_backend.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialAdd : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,14 +15,15 @@ namespace react_chat_app_backend.Migrations
                 name: "Messages",
                 columns: table => new
                 {
-                    senderId = table.Column<string>(type: "TEXT", nullable: false),
-                    receiverId = table.Column<string>(type: "TEXT", nullable: false),
-                    text = table.Column<string>(type: "TEXT", nullable: false),
-                    date = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Date = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    SenderId = table.Column<string>(type: "TEXT", nullable: false),
+                    ReceiverId = table.Column<string>(type: "TEXT", nullable: false),
+                    Text = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Messages", x => x.senderId);
+                    table.PrimaryKey("PK_Messages", x => x.Id);
                 });
         }
 

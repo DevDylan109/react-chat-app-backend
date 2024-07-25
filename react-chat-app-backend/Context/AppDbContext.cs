@@ -34,7 +34,7 @@ public partial class AppDbContext : DbContext
         OnModelCreatingPartial(modelBuilder);
 
         // modelBuilder.Entity<MessageData>().HasData(
-        //     new MessageData { receiverId = "test1", senderId = "test2", text = "Hello World" });
+        //     new MessageData { ReceiverId = "test1", SenderId = "test2", Text = "Hello World" });
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
