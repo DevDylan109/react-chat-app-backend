@@ -23,7 +23,6 @@ public class WebSocketController : ControllerBase
     {
         if (HttpContext.WebSockets.IsWebSocketRequest)
         {
-            _appDbContext.Messages.Add(new MessageData { receiverId = "test2", senderId = "TEst3", text = "Test4" });
             await _appDbContext.SaveChangesAsync();
             
             using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
@@ -38,17 +37,12 @@ public class WebSocketController : ControllerBase
     private void RegisterConnection(WebSocket webSocket, byte[] buffer)
     {
         var registerData = GetModelData<RegisterData>(buffer);
-        var userId = registerData.userId;
+        var userId = registerData.UserId;
         
-        if (_connections.ContainsKey(userId)) 
-        {
-            Console.WriteLine("this connection is already registered");
-        } 
-        else 
+        if (_connections.ContainsKey(userId) == false) 
         {
             _connections.Add(userId, webSocket);
-            Console.WriteLine($"Registered: user: {userId}, {webSocket.State}");
-        }
+        } 
     }
 
     private T GetModelData<T>(byte[] buffer)
@@ -57,10 +51,24 @@ public class WebSocketController : ControllerBase
         return JsonSerializer.Deserialize<T>(json);
     }
 
+    private MessageType GetMessageType(byte[] buffer)
+    {
+        var typeStr = GetModelData<ModelType>(buffer).Type;
+        return Enum.Parse<MessageType>(typeStr);
+    }
+
     private async Task<WebSocketReceiveResult> GetReceiveResult(byte[] buffer, WebSocket webSocket)
     {
         return await webSocket.ReceiveAsync(
             new ArraySegment<byte>(buffer), CancellationToken.None);
+    }
+    
+    private async Task CloseConnection(WebSocket webSocket, WebSocketReceiveResult receiveResult)
+    {
+        await webSocket.CloseAsync(
+            receiveResult.CloseStatus.Value,
+            receiveResult.CloseStatusDescription,
+            CancellationToken.None);
     }
 
     private int GetLengthWithoutPadding(byte[] buffer)
@@ -76,7 +84,7 @@ public class WebSocketController : ControllerBase
     private async Task ForwardMessage(byte[] buffer)
     {
         var message = GetModelData<MessageData>(buffer);
-        var receiverId = message.receiverId;
+        var receiverId = message.ReceiverId;
         var isReceiverConnected =_connections.TryGetValue(receiverId, out var receiverSocket);
         
         if (isReceiverConnected)
@@ -86,7 +94,7 @@ public class WebSocketController : ControllerBase
             await receiverSocket.SendAsync(
                 new ArraySegment<byte>(buffer, 0, bufferLength),
                 WebSocketMessageType.Text,
-                true,
+                WebSocketMessageFlags.EndOfMessage,
                 CancellationToken.None
             );
         }
@@ -99,15 +107,24 @@ public class WebSocketController : ControllerBase
         await webSocket.SendAsync(
             new ArraySegment<byte>(buffer, 0, buffer.Length),
             WebSocketMessageType.Text,
-            true,
+            WebSocketMessageFlags.EndOfMessage,
             CancellationToken.None
             );
     }
 
-    private async Task FetchMessageHistory(WebSocket webSocket)
+    private async Task FetchMessageHistory(WebSocket webSocket, byte[] buffer)
     {
-        var messages =_appDbContext.Messages.ToString();
-        var buffer = Encoding.UTF8.GetBytes(messages);
+        var userIds = GetModelData<UsersData>(buffer);
+        var userId1 = userIds.UserId1;
+        var userId2 = userIds.UserId2;
+
+        var messageHistory = await _appDbContext.Messages.Where(list =>
+            list.SenderId == userId1 && list.ReceiverId == userId2
+            || list.SenderId == userId2 && list.ReceiverId == userId1)
+            .ToListAsync();
+        
+        var json = JsonSerializer.Serialize(messageHistory); 
+        buffer = Encoding.UTF8.GetBytes(json);
 
         await webSocket.SendAsync(
             new ArraySegment<byte>(buffer, 0, buffer.Length),
@@ -115,6 +132,13 @@ public class WebSocketController : ControllerBase
             true,
             CancellationToken.None
             );
+    }
+
+    private async Task AddMessageToDatabase(byte[] buffer)
+    {
+        var message = GetModelData<MessageData>(buffer);
+        _appDbContext.Messages.Add(message);
+        await _appDbContext.SaveChangesAsync();
     }
 
     private async Task HandleMessage(WebSocket webSocket)
@@ -126,29 +150,26 @@ public class WebSocketController : ControllerBase
             var receiveResult = await GetReceiveResult(buffer, webSocket);
             if (receiveResult.CloseStatus.HasValue)
             {
-                await webSocket.CloseAsync(
-                    receiveResult.CloseStatus.Value,
-                    receiveResult.CloseStatusDescription,
-                    CancellationToken.None);
+                await CloseConnection(webSocket, receiveResult);
                 break;   
             }
             
-            var message = GetModelData<ModelType>(buffer);
-            switch (message.type)
+            var messageType = GetMessageType(buffer);
+            switch (messageType)
             {
-                case "textMessage": 
+                case MessageType.ChatMessage: 
+                    await AddMessageToDatabase(buffer);
                     await ForwardMessage(buffer);
-                    await SendResponse(webSocket, "{ \"isDelivered\":\"true\" }");
                     break;
-                case "register":
+                
+                case MessageType.Register:
                     RegisterConnection(webSocket, buffer);
-                    await SendResponse(webSocket, "{ \"isRegistered\":\"true\" }"); 
                     break;
-                case "messageHistory":
-                    await FetchMessageHistory(webSocket);
+                
+                case MessageType.History:
+                    await FetchMessageHistory(webSocket, buffer);
                     break;
             }
         }
     }
-    
 }
