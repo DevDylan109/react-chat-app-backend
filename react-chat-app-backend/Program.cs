@@ -5,10 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using react_chat_app_backend.Context;
 
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = builder.Configuration["ConnectionString"];
 
 // Add services to the container
 builder.Services.AddDbContext<AppDbContext>(optionsBuilder => 
-    optionsBuilder.UseSqlite("DefaultConnection"));
+    optionsBuilder.UseSqlite(connectionString));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 

@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>react_chat_app_backend</RootNamespace>
+        <UserSecretsId>855ff5dd-b6a3-45c3-ac56-f978af5d0de0</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
