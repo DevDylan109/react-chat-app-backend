@@ -168,7 +168,7 @@ public class WebSocketController : ControllerBase
                     await ForwardMessage(buffer);
                     break;
                 
-                case MessageType.Register:
+                case MessageType.register:
                     RegisterConnection(webSocket, buffer);
                     break;
                 
