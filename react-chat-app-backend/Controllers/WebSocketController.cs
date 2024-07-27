@@ -118,12 +118,18 @@ public class WebSocketController : ControllerBase
         var userId1 = userIds.UserId1;
         var userId2 = userIds.UserId2;
 
-        var messageHistory = await _appDbContext.Messages.Where(list =>
-            list.SenderId == userId1 && list.ReceiverId == userId2
-            || list.SenderId == userId2 && list.ReceiverId == userId1)
+        var messages = await _appDbContext.Messages.Where(m =>
+            m.SenderId == userId1 && m.ReceiverId == userId2 ||
+            m.SenderId == userId2 && m.ReceiverId == userId1)
             .ToListAsync();
         
-        var json = JsonSerializer.Serialize(messageHistory); 
+        var messageHistory = new MessageHistory
+        {
+            Messages = messages,
+            Type = MessageType.ChatHistory
+        };
+        
+        var json = JsonSerializer.Serialize(messageHistory);  
         buffer = Encoding.UTF8.GetBytes(json);
 
         await webSocket.SendAsync(
@@ -134,7 +140,7 @@ public class WebSocketController : ControllerBase
             );
     }
 
-    private async Task AddMessageToDatabase(byte[] buffer)
+    private async Task StoreMessage(byte[] buffer)
     {
         var message = GetModelData<MessageData>(buffer);
         _appDbContext.Messages.Add(message);
@@ -158,7 +164,7 @@ public class WebSocketController : ControllerBase
             switch (messageType)
             {
                 case MessageType.ChatMessage: 
-                    await AddMessageToDatabase(buffer);
+                    await StoreMessage(buffer);
                     await ForwardMessage(buffer);
                     break;
                 
@@ -166,7 +172,7 @@ public class WebSocketController : ControllerBase
                     RegisterConnection(webSocket, buffer);
                     break;
                 
-                case MessageType.History:
+                case MessageType.ChatHistory:
                     await FetchMessageHistory(webSocket, buffer);
                     break;
             }
