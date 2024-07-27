@@ -4,7 +4,7 @@ namespace react_chat_app_backend.Models;
 
 public enum MessageType
 {
-    ChatMessage,
-    ChatHistory,
+    chatMessage,
+    chatHistory,
     Register
 }
