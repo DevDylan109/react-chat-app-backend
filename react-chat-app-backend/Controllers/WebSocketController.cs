@@ -126,7 +126,7 @@ public class WebSocketController : ControllerBase
         var messageHistory = new MessageHistory
         {
             messages = messages,
-            type = MessageType.ChatHistory
+            type = MessageType.chatHistory
         };
         
         var json = JsonSerializer.Serialize(messageHistory);  
@@ -163,7 +163,7 @@ public class WebSocketController : ControllerBase
             var messageType = GetMessageType(buffer);
             switch (messageType)
             {
-                case MessageType.ChatMessage: 
+                case MessageType.chatMessage: 
                     await StoreMessage(buffer);
                     await ForwardMessage(buffer);
                     break;
@@ -172,7 +172,7 @@ public class WebSocketController : ControllerBase
                     RegisterConnection(webSocket, buffer);
                     break;
                 
-                case MessageType.ChatHistory:
+                case MessageType.chatHistory:
                     await FetchMessageHistory(webSocket, buffer);
                     break;
             }
