@@ -6,5 +6,5 @@ public enum MessageType
 {
     chatMessage,
     chatHistory,
-    Register
+    register
 }
