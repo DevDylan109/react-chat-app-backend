@@ -7,19 +7,20 @@ namespace react_chat_app_backend.Models;
 public class MessageData
 {
     [Key] 
-    public Guid Id { get; set; }
-    public DateTime Date { get; set; }
+    public Guid id { get; set; }
+    public DateTime date { get; set; }
     
     [DisallowNull]
-    public string SenderId { get; set; }
+    public string senderId { get; set; }
     [DisallowNull]
-    public string ReceiverId { get; set; }
+    public string receiverId { get; set; }
     [DisallowNull]
-    public string Text { get; set; }
+    public string text { get; set; }
 
     public MessageData()
     {
-        Id = Guid.NewGuid();
-        Date = DateTime.UtcNow;
+        id = Guid.NewGuid();
+        date = DateTime.UtcNow;
     }
+    
 }

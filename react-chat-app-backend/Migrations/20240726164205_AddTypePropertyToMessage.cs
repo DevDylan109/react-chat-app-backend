@@ -11,8 +11,8 @@ namespace react_chat_app_backend.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<int>(
-                name: "Type",
-                table: "Messages",
+                name: "type",
+                table: "messages",
                 type: "INTEGER",
                 nullable: false,
                 defaultValue: 0);
@@ -22,8 +22,8 @@ namespace react_chat_app_backend.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Type",
-                table: "Messages");
+                name: "type",
+                table: "messages");
         }
     }
 }

@@ -37,7 +37,7 @@ public class WebSocketController : ControllerBase
     private void RegisterConnection(WebSocket webSocket, byte[] buffer)
     {
         var registerData = GetModelData<RegisterData>(buffer);
-        var userId = registerData.UserId;
+        var userId = registerData.userId;
         
         if (_connections.ContainsKey(userId) == false) 
         {
@@ -53,7 +53,7 @@ public class WebSocketController : ControllerBase
 
     private MessageType GetMessageType(byte[] buffer)
     {
-        var typeStr = GetModelData<ModelType>(buffer).Type;
+        var typeStr = GetModelData<ModelType>(buffer).type;
         return Enum.Parse<MessageType>(typeStr);
     }
 
@@ -84,7 +84,7 @@ public class WebSocketController : ControllerBase
     private async Task ForwardMessage(byte[] buffer)
     {
         var message = GetModelData<MessageData>(buffer);
-        var receiverId = message.ReceiverId;
+        var receiverId = message.receiverId;
         var isReceiverConnected =_connections.TryGetValue(receiverId, out var receiverSocket);
         
         if (isReceiverConnected)
@@ -115,18 +115,18 @@ public class WebSocketController : ControllerBase
     private async Task FetchMessageHistory(WebSocket webSocket, byte[] buffer)
     {
         var userIds = GetModelData<UsersData>(buffer);
-        var userId1 = userIds.UserId1;
-        var userId2 = userIds.UserId2;
+        var userId1 = userIds.userId1;
+        var userId2 = userIds.userId2;
 
         var messages = await _appDbContext.Messages.Where(m =>
-            m.SenderId == userId1 && m.ReceiverId == userId2 ||
-            m.SenderId == userId2 && m.ReceiverId == userId1)
+            m.senderId == userId1 && m.receiverId == userId2 ||
+            m.senderId == userId2 && m.receiverId == userId1)
             .ToListAsync();
         
         var messageHistory = new MessageHistory
         {
-            Messages = messages,
-            Type = MessageType.ChatHistory
+            messages = messages,
+            type = MessageType.ChatHistory
         };
         
         var json = JsonSerializer.Serialize(messageHistory);  

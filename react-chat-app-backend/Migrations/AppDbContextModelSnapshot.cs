@@ -19,28 +19,28 @@ namespace react_chat_app_backend.Migrations
 
             modelBuilder.Entity("react_chat_app_backend.Models.MessageData", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("Date")
+                    b.Property<DateTime>("date")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ReceiverId")
+                    b.Property<string>("receiverId")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("SenderId")
+                    b.Property<string>("senderId")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Text")
+                    b.Property<string>("text")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
+                    b.HasKey("id");
 
-                    b.ToTable("Messages");
+                    b.ToTable("messages");
                 });
 #pragma warning restore 612, 618
         }

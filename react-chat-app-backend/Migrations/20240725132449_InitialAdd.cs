@@ -12,7 +12,7 @@ namespace react_chat_app_backend.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Messages",
+                name: "messages",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
@@ -31,7 +31,7 @@ namespace react_chat_app_backend.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Messages");
+                name: "messages");
         }
     }
 }
