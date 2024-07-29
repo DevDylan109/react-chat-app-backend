@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using react_chat_app_backend.Context;
 
@@ -10,9 +11,11 @@ using react_chat_app_backend.Context;
 namespace react_chat_app_backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240729132453_AddPasswordToUser")]
+    partial class AddPasswordToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.7");
@@ -52,6 +55,7 @@ namespace react_chat_app_backend.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("lastMessage")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("name")
@@ -63,6 +67,7 @@ namespace react_chat_app_backend.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("photoURL")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("userId");

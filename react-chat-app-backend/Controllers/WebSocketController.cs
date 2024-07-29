@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using react_chat_app_backend.Context;
+using react_chat_app_backend.Migrations;
 using react_chat_app_backend.Models;
 
 namespace react_chat_app_backend.Controllers;
@@ -119,23 +120,6 @@ public class WebSocketController : ControllerBase
             );
     }
 
-    private async Task StoreFriendRequest(byte[] buffer)
-    {
-        var friendRequest = GetModelData<FriendRequest>(buffer);
-        var senderId = friendRequest.senderId;
-        var receiverId = friendRequest.receiverId;
-
-        var friendship = new UserFriendShip
-        {
-            UserId = senderId,
-            RelatedUserId = receiverId,
-            isPending = true
-        };
-
-        await _appDbContext.UserFriendShips.AddAsync(friendship);
-        await _appDbContext.SaveChangesAsync();
-    }
-
     private async Task<UserFriendShip?> GetFriendship(string userId1, string userId2)
     {
         return await _appDbContext.UserFriendShips.FirstOrDefaultAsync(ur =>
@@ -155,31 +139,51 @@ public class WebSocketController : ControllerBase
         var friendship = await GetFriendship(userId1, userId2);
         return friendship != null && friendship.isPending;
     }
-
-    private async Task ForwardFriendRequest(byte[] buffer)
+    
+    private async Task StoreFriendRequest(FriendRequest friendRequest)
     {
-        var friendRequest = GetModelData<FriendRequest>(buffer);
         var senderId = friendRequest.senderId;
         var receiverId = friendRequest.receiverId;
 
-        if (await CheckFriendshipPending(senderId, receiverId)) {
-            return;
-        }
-        
-        if (await CheckFriendshipExists(senderId, receiverId)) {
-            return;
-        }
-        
+        var friendship = new UserFriendShip
+        {
+            UserId = senderId,
+            RelatedUserId = receiverId,
+            isPending = true
+        };
+
+        await _appDbContext.UserFriendShips.AddAsync(friendship);
+        await _appDbContext.SaveChangesAsync();
+    }
+
+    private async Task ForwardFriendRequest(string receiverId, byte[] buffer)
+    {
         var isReceiverConnected = _connections.TryGetValue(receiverId, out var receiverConnection);
         if (isReceiverConnected)
         {
+            var bufferLength = GetLengthWithoutPadding(buffer);
+            
             await receiverConnection.SendAsync(
-                new ArraySegment<byte>(buffer, 0, buffer.Length),
+                new ArraySegment<byte>(buffer, 0, bufferLength),
                 WebSocketMessageType.Text,
                 WebSocketMessageFlags.EndOfMessage,
                 CancellationToken.None
             );
         }
+    }
+
+    private async Task StoreAndForwardFriendRequest(byte[] buffer)
+    {
+        var friendRequest = GetModelData<FriendRequest>(buffer);
+        var senderId = friendRequest.senderId;
+        var receiverId = friendRequest.receiverId;
+        
+        if (await CheckFriendshipExists(senderId, receiverId)) {
+            return;
+        }
+
+        await StoreFriendRequest(friendRequest);
+        await ForwardFriendRequest(receiverId, buffer);
     }
 
     private async Task AcceptFriendRequest(WebSocket webSocket, byte[] buffer)
@@ -192,7 +196,7 @@ public class WebSocketController : ControllerBase
         var friendship = await GetFriendship(userId1, userId2);
         
         // complete this friend request
-        friendship.isPending = true; 
+        friendship.isPending = false; 
         _appDbContext.Entry(friendship).Property(fr => fr.isPending).IsModified = true;
         await _appDbContext.SaveChangesAsync();
 
@@ -223,10 +227,16 @@ public class WebSocketController : ControllerBase
         
         // lookup friend request in database
         var friendship = await GetFriendship(userId1, userId2);
-        
-        // delete this friend request
-        _appDbContext.Remove(friendship);
-        await _appDbContext.SaveChangesAsync();
+
+        if (await CheckFriendshipExists(userId1, userId2))
+        {
+            if (await CheckFriendshipPending(userId1, userId2))
+            {
+                // delete this friend request only if it hasn't already been accepted
+                _appDbContext.Remove(friendship);
+                await _appDbContext.SaveChangesAsync();   
+            }
+        }
     }
 
     private async Task RemoveFriend(byte[] buffer)
@@ -333,8 +343,7 @@ public class WebSocketController : ControllerBase
                     break;
                 
                 case MessageType.friendRequest:
-                    await StoreFriendRequest(buffer);
-                    await ForwardFriendRequest(buffer);
+                    await StoreAndForwardFriendRequest(buffer);
                     break;
                 
                 case MessageType.acceptFriendRequest:
