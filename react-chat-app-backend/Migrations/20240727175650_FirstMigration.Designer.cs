@@ -11,8 +11,8 @@ using react_chat_app_backend.Context;
 namespace react_chat_app_backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240726164205_AddTypePropertyToMessage")]
-    partial class AddTypePropertyToMessage
+    [Migration("20240727175650_FirstMigration")]
+    partial class FirstMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -22,29 +22,29 @@ namespace react_chat_app_backend.Migrations
 
             modelBuilder.Entity("react_chat_app_backend.Models.MessageData", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("Date")
+                    b.Property<DateTime>("date")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ReceiverId")
+                    b.Property<string>("receiverId")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("SenderId")
+                    b.Property<string>("senderId")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Text")
+                    b.Property<string>("text")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Type")
+                    b.Property<int>("type")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("Id");
+                    b.HasKey("id");
 
                     b.ToTable("Messages");
                 });

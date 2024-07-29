@@ -6,5 +6,11 @@ public enum MessageType
 {
     chatMessage,
     chatHistory,
-    register
+    friendList,
+    friendRequest,
+    acceptFriendRequest,
+    declineFriendRequest,
+    removeFriend,
+    register,
+    notification
 }

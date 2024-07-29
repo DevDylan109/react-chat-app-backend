@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using react_chat_app_backend.Context;
 
@@ -10,9 +11,11 @@ using react_chat_app_backend.Context;
 namespace react_chat_app_backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240728213100_FriendShip")]
+    partial class FriendShip
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.7");
@@ -65,7 +68,7 @@ namespace react_chat_app_backend.Migrations
 
                     b.HasKey("userId");
 
-                    b.ToTable("Users");
+                    b.ToTable("UserData");
                 });
 
             modelBuilder.Entity("react_chat_app_backend.Models.UserFriendShip", b =>
@@ -76,14 +79,11 @@ namespace react_chat_app_backend.Migrations
                     b.Property<string>("RelatedUserId")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("isPending")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("UserId", "RelatedUserId");
 
                     b.HasIndex("RelatedUserId");
 
-                    b.ToTable("UserFriendShips");
+                    b.ToTable("UserFriendShip");
                 });
 
             modelBuilder.Entity("react_chat_app_backend.Models.UserFriendShip", b =>

@@ -5,25 +5,25 @@
 namespace react_chat_app_backend.Migrations
 {
     /// <inheritdoc />
-    public partial class AddTypePropertyToMessage : Migration
+    public partial class addPendingProperty : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "type",
-                table: "messages",
+            migrationBuilder.AddColumn<bool>(
+                name: "isPending",
+                table: "UserFriendShips",
                 type: "INTEGER",
                 nullable: false,
-                defaultValue: 0);
+                defaultValue: false);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "type",
-                table: "messages");
+                name: "isPending",
+                table: "UserFriendShips");
         }
     }
 }

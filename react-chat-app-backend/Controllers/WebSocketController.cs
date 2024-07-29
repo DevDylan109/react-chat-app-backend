@@ -1,8 +1,10 @@
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using react_chat_app_backend.Context;
 using react_chat_app_backend.Models;
 
@@ -87,6 +89,11 @@ public class WebSocketController : ControllerBase
         var receiverId = message.receiverId;
         var isReceiverConnected =_connections.TryGetValue(receiverId, out var receiverSocket);
         
+        message.date = DateTime.UtcNow;
+        
+        var json = JsonSerializer.Serialize(message);
+        buffer = Encoding.UTF8.GetBytes(json);
+        
         if (isReceiverConnected)
         {
             var bufferLength = GetLengthWithoutPadding(buffer);
@@ -104,6 +111,155 @@ public class WebSocketController : ControllerBase
     {
         var buffer = Encoding.UTF8.GetBytes(json);
         
+        await webSocket.SendAsync(
+            new ArraySegment<byte>(buffer, 0, buffer.Length),
+            WebSocketMessageType.Text,
+            WebSocketMessageFlags.EndOfMessage,
+            CancellationToken.None
+            );
+    }
+
+    private async Task StoreFriendRequest(byte[] buffer)
+    {
+        var friendRequest = GetModelData<FriendRequest>(buffer);
+        var senderId = friendRequest.senderId;
+        var receiverId = friendRequest.receiverId;
+
+        var friendship = new UserFriendShip
+        {
+            UserId = senderId,
+            RelatedUserId = receiverId,
+            isPending = true
+        };
+
+        await _appDbContext.UserFriendShips.AddAsync(friendship);
+        await _appDbContext.SaveChangesAsync();
+    }
+
+    private async Task<UserFriendShip?> GetFriendship(string userId1, string userId2)
+    {
+        return await _appDbContext.UserFriendShips.FirstOrDefaultAsync(ur =>
+            ur.UserId == userId1 && ur.RelatedUserId == userId2 ||
+            ur.UserId == userId2 && ur.RelatedUserId == userId1
+        );
+    }
+
+    private async Task<bool> CheckFriendshipExists(string userId1, string userId2)
+    {
+        var friendship = await GetFriendship(userId1, userId2);
+        return friendship != null;
+    }
+    
+    private async Task<bool> CheckFriendshipPending(string userId1, string userId2)
+    {
+        var friendship = await GetFriendship(userId1, userId2);
+        return friendship != null && friendship.isPending;
+    }
+
+    private async Task ForwardFriendRequest(byte[] buffer)
+    {
+        var friendRequest = GetModelData<FriendRequest>(buffer);
+        var senderId = friendRequest.senderId;
+        var receiverId = friendRequest.receiverId;
+
+        if (await CheckFriendshipPending(senderId, receiverId)) {
+            return;
+        }
+        
+        if (await CheckFriendshipExists(senderId, receiverId)) {
+            return;
+        }
+        
+        var isReceiverConnected = _connections.TryGetValue(receiverId, out var receiverConnection);
+        if (isReceiverConnected)
+        {
+            await receiverConnection.SendAsync(
+                new ArraySegment<byte>(buffer, 0, buffer.Length),
+                WebSocketMessageType.Text,
+                WebSocketMessageFlags.EndOfMessage,
+                CancellationToken.None
+            );
+        }
+    }
+
+    private async Task AcceptFriendRequest(WebSocket webSocket, byte[] buffer)
+    {
+        var friendRequest = GetModelData<FriendRequest>(buffer);
+        var userId1 = friendRequest.senderId;
+        var userId2 = friendRequest.receiverId;
+        
+        // lookup friend request in database
+        var friendship = await GetFriendship(userId1, userId2);
+        
+        // complete this friend request
+        friendship.isPending = true; 
+        _appDbContext.Entry(friendship).Property(fr => fr.isPending).IsModified = true;
+        await _appDbContext.SaveChangesAsync();
+
+        // send a notification to the user who has sent the friend request if he's connected
+        var jsonObject = new
+        {
+            text = $"{userId2} has accepted your friend request!",
+            type = "notification"
+            //type = MessageType.notification
+        };
+
+        var jsonString = JsonSerializer.Serialize(jsonObject);
+        buffer = Encoding.UTF8.GetBytes(jsonString);
+        
+        await webSocket.SendAsync(
+            new ArraySegment<byte>(buffer, 0, buffer.Length),
+            WebSocketMessageType.Text,
+            WebSocketMessageFlags.EndOfMessage,
+            CancellationToken.None
+        );
+    }
+
+    private async Task DeclineFriendRequest(byte[] buffer)
+    {
+        var friendRequest = GetModelData<FriendRequest>(buffer);
+        var userId1 = friendRequest.senderId;
+        var userId2 = friendRequest.receiverId;
+        
+        // lookup friend request in database
+        var friendship = await GetFriendship(userId1, userId2);
+        
+        // delete this friend request
+        _appDbContext.Remove(friendship);
+        await _appDbContext.SaveChangesAsync();
+    }
+
+    private async Task RemoveFriend(byte[] buffer)
+    {
+        var usersData = GetModelData<UsersData>(buffer);
+        var userId1 = usersData.userId1;
+        var userId2 = usersData.userId2;
+
+       await _appDbContext.UserFriendShips
+            .Where(ur => ur.UserId == userId1 || ur.UserId == userId2)
+            .Where(ur => ur.RelatedUserId == userId1 || ur.RelatedUserId == userId2)
+            .ExecuteDeleteAsync();
+    }
+
+    private async Task FetchFriendList(WebSocket webSocket, byte[] buffer)
+    {
+        var userData = GetModelData<UserData>(buffer);
+        var userId = userData.userId;
+        
+        var friends = await _appDbContext.UserFriendShips
+            .Where(ur => ur.UserId == userId)
+            .Select(ur => ur.RelatedUserId)
+            .ToListAsync();
+
+        var friendList = new FriendList
+        {
+            type = MessageType.friendList,
+            friendIds = friends
+        };
+        
+        var json = JsonSerializer.Serialize(friendList);
+        buffer = Encoding.UTF8.GetBytes(json);
+
         await webSocket.SendAsync(
             new ArraySegment<byte>(buffer, 0, buffer.Length),
             WebSocketMessageType.Text,
@@ -174,6 +330,27 @@ public class WebSocketController : ControllerBase
                 
                 case MessageType.chatHistory:
                     await FetchMessageHistory(webSocket, buffer);
+                    break;
+                
+                case MessageType.friendRequest:
+                    await StoreFriendRequest(buffer);
+                    await ForwardFriendRequest(buffer);
+                    break;
+                
+                case MessageType.acceptFriendRequest:
+                    await AcceptFriendRequest(webSocket, buffer);
+                    break;
+                
+                case MessageType.declineFriendRequest:
+                    await DeclineFriendRequest(buffer);
+                    break;
+                
+                case MessageType.removeFriend:
+                    await RemoveFriend(buffer);
+                    break;
+                
+                case MessageType.friendList:
+                    await FetchFriendList(webSocket, buffer);
                     break;
             }
         }

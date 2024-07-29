@@ -10,6 +10,8 @@ namespace react_chat_app_backend.Context;
 public partial class AppDbContext : DbContext
 {
     public DbSet<MessageData> Messages { get; set; }
+    public DbSet<UserData> Users { get; set; }
+    public DbSet<UserFriendShip> UserFriendShips { get; set; }
     
     public string DbPath { get; }
 
@@ -20,7 +22,20 @@ public partial class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        OnModelCreatingPartial(modelBuilder);
+        modelBuilder.Entity<UserFriendShip>()
+            .HasKey(ur => new { ur.UserId, ur.RelatedUserId });
+
+        modelBuilder.Entity<UserFriendShip>()
+            .HasOne(ur => ur.User)
+            .WithMany(u => u.UserFriendShips)
+            .HasForeignKey(ur => ur.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<UserFriendShip>()
+            .HasOne(ur => ur.RelatedUser)
+            .WithMany()
+            .HasForeignKey(ur => ur.RelatedUserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
