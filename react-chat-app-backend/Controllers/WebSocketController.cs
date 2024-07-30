@@ -251,20 +251,28 @@ public class WebSocketController : ControllerBase
             .ExecuteDeleteAsync();
     }
 
-    private async Task FetchFriendList(WebSocket webSocket, byte[] buffer)
+    private async Task FetchAllFriends(WebSocket webSocket, byte[] buffer)
     {
         var userData = GetModelData<UserData>(buffer);
         var userId = userData.userId;
         
-        var friends = await _appDbContext.UserFriendShips
+        var list1 = await _appDbContext.UserFriendShips
             .Where(ur => ur.UserId == userId)
-            .Select(ur => ur.RelatedUserId)
+            .Select(ur => ur.RelatedUser)
             .ToListAsync();
 
+        var list2 = await _appDbContext.UserFriendShips
+            .Where(ur => ur.RelatedUserId == userId)
+            .Select(ur => ur.User)
+            .ToListAsync();
+
+        var friends = new List<UserData>();
+        friends.AddRange(list1);
+        friends.AddRange(list2);
+        
         var friendList = new FriendList
         {
-            type = MessageType.friendList,
-            friendIds = friends
+            friends = friends
         };
         
         var json = JsonSerializer.Serialize(friendList);
@@ -359,7 +367,7 @@ public class WebSocketController : ControllerBase
                     break;
                 
                 case MessageType.friendList:
-                    await FetchFriendList(webSocket, buffer);
+                    await FetchAllFriends(webSocket, buffer);
                     break;
             }
         }

@@ -1,8 +1,11 @@
+using System.Text.Json.Serialization;
+
 namespace react_chat_app_backend.Models;
 
 public class FriendList
 {
-    public List<string> friendIds { get; set; }
+    public List<UserData> friends { get; set; }
 
-    public MessageType type = MessageType.friendList;
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public MessageType type { get; set; } = MessageType.friendList;
 }
