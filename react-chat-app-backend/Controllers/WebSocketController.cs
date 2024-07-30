@@ -84,16 +84,21 @@ public class WebSocketController : ControllerBase
         return i + 1;
     }
 
-    private async Task ForwardMessage(byte[] buffer)
+    private async Task StoreMessage(MessageData message)
     {
-        var message = GetModelData<MessageData>(buffer);
+        _appDbContext.Messages.Add(message);
+        await _appDbContext.SaveChangesAsync();
+    }
+    
+    private async Task ForwardMessage(MessageData message)
+    {
         var receiverId = message.receiverId;
         var isReceiverConnected =_connections.TryGetValue(receiverId, out var receiverSocket);
         
         message.date = DateTime.UtcNow;
         
         var json = JsonSerializer.Serialize(message);
-        buffer = Encoding.UTF8.GetBytes(json);
+        var buffer = Encoding.UTF8.GetBytes(json);
         
         if (isReceiverConnected)
         {
@@ -105,6 +110,19 @@ public class WebSocketController : ControllerBase
                 WebSocketMessageFlags.EndOfMessage,
                 CancellationToken.None
             );
+        }
+    }
+
+    private async Task StoreAndForwardMessage(byte[] buffer)
+    {
+        var message = GetModelData<MessageData>(buffer);
+        var senderId = message.senderId;
+        var receiverId = message.receiverId;
+        
+        if (await CheckFriendshipExists(senderId, receiverId))
+        {
+            await StoreMessage(message);
+            await ForwardMessage(message);   
         }
     }
 
@@ -314,13 +332,6 @@ public class WebSocketController : ControllerBase
             );
     }
 
-    private async Task StoreMessage(byte[] buffer)
-    {
-        var message = GetModelData<MessageData>(buffer);
-        _appDbContext.Messages.Add(message);
-        await _appDbContext.SaveChangesAsync();
-    }
-
     private async Task HandleMessage(WebSocket webSocket)
     {
         while (true)
@@ -337,9 +348,8 @@ public class WebSocketController : ControllerBase
             var messageType = GetMessageType(buffer);
             switch (messageType)
             {
-                case MessageType.chatMessage: 
-                    await StoreMessage(buffer);
-                    await ForwardMessage(buffer);
+                case MessageType.chatMessage:
+                    await StoreAndForwardMessage(buffer);
                     break;
                 
                 case MessageType.register:
