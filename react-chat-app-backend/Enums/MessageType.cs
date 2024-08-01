@@ -8,9 +8,5 @@ public enum MessageType
     chatHistory,
     friendList,
     friendRequest,
-    acceptFriendRequest,
-    declineFriendRequest,
-    removeFriend,
     register,
-    notification
 }
