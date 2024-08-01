@@ -1,25 +1,26 @@
 using Microsoft.EntityFrameworkCore;
 using react_chat_app_backend.Context;
 using react_chat_app_backend.Models;
+using react_chat_app_backend.Repositories.Interfaces;
 
 namespace react_chat_app_backend.Repositories;
 
-public class MessageRepository : IMessageRepository
+public class WSMessageRepository : IWSMessageRepository
 {
     private AppDbContext _appDbContext;
 
-    public MessageRepository(AppDbContext appDbContext)
+    public WSMessageRepository(AppDbContext appDbContext)
     {
         _appDbContext = appDbContext;
     }
 
-    public async Task AddMessage(MessageData message)
+    public async Task AddMessage(WSMessage wsMessage)
     {
-        _appDbContext.Messages.Add(message);
+        _appDbContext.Messages.Add(wsMessage);
         await _appDbContext.SaveChangesAsync();
     }
 
-    public async Task<List<MessageData>> GetMessages(string userId1, string userId2)
+    public async Task<List<WSMessage>> GetMessages(string userId1, string userId2)
     {
          return await _appDbContext.Messages.Where(m =>
                 m.senderId == userId1 && m.receiverId == userId2 ||

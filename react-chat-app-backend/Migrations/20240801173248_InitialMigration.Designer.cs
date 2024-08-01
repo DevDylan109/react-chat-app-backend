@@ -11,8 +11,8 @@ using react_chat_app_backend.Context;
 namespace react_chat_app_backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240729021026_AddUsersEntity")]
-    partial class AddUsersEntity
+    [Migration("20240801173248_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -20,50 +20,23 @@ namespace react_chat_app_backend.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.7");
 
-            modelBuilder.Entity("react_chat_app_backend.Models.MessageData", b =>
-                {
-                    b.Property<Guid>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("date")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("receiverId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("senderId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("text")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("type")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("id");
-
-                    b.ToTable("Messages");
-                });
-
-            modelBuilder.Entity("react_chat_app_backend.Models.UserData", b =>
+            modelBuilder.Entity("react_chat_app_backend.Models.User", b =>
                 {
                     b.Property<string>("userId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("lastMessage")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("name")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("photoURL")
+                    b.Property<string>("password")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("photoURL")
                         .HasColumnType("TEXT");
 
                     b.HasKey("userId");
@@ -89,15 +62,41 @@ namespace react_chat_app_backend.Migrations
                     b.ToTable("UserFriendShips");
                 });
 
+            modelBuilder.Entity("react_chat_app_backend.Models.WSMessage", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("receiverId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("senderId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("text")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("id");
+
+                    b.ToTable("Messages");
+                });
+
             modelBuilder.Entity("react_chat_app_backend.Models.UserFriendShip", b =>
                 {
-                    b.HasOne("react_chat_app_backend.Models.UserData", "RelatedUser")
+                    b.HasOne("react_chat_app_backend.Models.User", "RelatedUser")
                         .WithMany()
                         .HasForeignKey("RelatedUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("react_chat_app_backend.Models.UserData", "User")
+                    b.HasOne("react_chat_app_backend.Models.User", "User")
                         .WithMany("UserFriendShips")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -108,7 +107,7 @@ namespace react_chat_app_backend.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("react_chat_app_backend.Models.UserData", b =>
+            modelBuilder.Entity("react_chat_app_backend.Models.User", b =>
                 {
                     b.Navigation("UserFriendShips");
                 });

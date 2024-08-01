@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace react_chat_app_backend.Models;
 
-public class UserData
+public class User
 {
     
     [Key]

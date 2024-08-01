@@ -1,11 +1,11 @@
 using System.Net;
-using react_chat_app_backend.Context;
 using react_chat_app_backend.Models;
-using react_chat_app_backend.Repositories;
+using react_chat_app_backend.Repositories.Interfaces;
+using react_chat_app_backend.Services.Interfaces;
 
 namespace react_chat_app_backend.Services;
 
-public class UserService
+public class UserService : IUserService
 {
     private IUserRepository _userRepository;
     
@@ -14,15 +14,15 @@ public class UserService
         _userRepository = userRepository;
     }
     
-    public async Task<HttpStatusCode> CreateUser(UserData userData)
+    public async Task<HttpStatusCode> CreateUser(User user)
     {
-        var userId = userData.userId;
+        var userId = user.userId;
         
         if (await CheckUserExists(userId)) {
             return HttpStatusCode.Conflict;
         }
 
-        await _userRepository.CreateUser(userData);
+        await _userRepository.CreateUser(user);
         return HttpStatusCode.Created;
     }
     

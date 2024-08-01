@@ -6,7 +6,4 @@ public class FriendRequest
 {
     public string initiatorId { get; set; }
     public string acceptorId { get; set; }
-    
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public MessageType type { get; set; } = MessageType.friendRequest;
 }

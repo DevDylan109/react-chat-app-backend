@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using react_chat_app_backend.Context;
 using react_chat_app_backend.Models;
+using react_chat_app_backend.Repositories.Interfaces;
 
 namespace react_chat_app_backend.Repositories;
 
@@ -13,7 +14,7 @@ public class FriendShipRepository : IFriendShipRepository
         _appDbContext = appDbContext;
     }
     
-    public async Task<List<UserData>> GetFriendsOfUser (string userId)
+    public async Task<List<User>> GetFriendsOfUser (string userId)
     {
         var list1 = await _appDbContext.UserFriendShips
             .Where(ur => ur.UserId == userId)
@@ -25,7 +26,7 @@ public class FriendShipRepository : IFriendShipRepository
             .Select(ur => ur.User)
             .ToListAsync();
 
-        var friends = new List<UserData>();
+        var friends = new List<User>();
         friends.AddRange(list1);
         friends.AddRange(list2);
         

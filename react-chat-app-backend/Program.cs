@@ -1,10 +1,10 @@
-using System.Net.WebSockets;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
-using react_chat_app_backend;
 using react_chat_app_backend.Context;
+using react_chat_app_backend.Controllers.WSControllers;
+using react_chat_app_backend.Repositories;
+using react_chat_app_backend.Repositories.Interfaces;
+using react_chat_app_backend.Services;
+using react_chat_app_backend.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration["ConnectionString"];
@@ -14,6 +14,17 @@ builder.Services.AddDbContext<AppDbContext>(optionsBuilder =>
     optionsBuilder.UseSqlite(connectionString));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+builder.Services.AddSingleton<IWSManager, WSManager>();
+
+builder.Services.AddScoped<IWSMessageRepository, WSMessageRepository>();
+builder.Services.AddScoped<IWSMessageService, WSMessageService>();
+
+builder.Services.AddScoped<IFriendShipRepository, FriendShipRepository>();
+builder.Services.AddScoped<IFriendShipService, FriendShipService>();
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {

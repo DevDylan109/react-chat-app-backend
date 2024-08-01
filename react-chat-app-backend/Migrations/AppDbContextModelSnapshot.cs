@@ -17,36 +17,7 @@ namespace react_chat_app_backend.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.7");
 
-            modelBuilder.Entity("react_chat_app_backend.Models.MessageData", b =>
-                {
-                    b.Property<Guid>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("date")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("receiverId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("senderId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("text")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("type")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("id");
-
-                    b.ToTable("Messages");
-                });
-
-            modelBuilder.Entity("react_chat_app_backend.Models.UserData", b =>
+            modelBuilder.Entity("react_chat_app_backend.Models.User", b =>
                 {
                     b.Property<string>("userId")
                         .HasColumnType("TEXT");
@@ -88,15 +59,41 @@ namespace react_chat_app_backend.Migrations
                     b.ToTable("UserFriendShips");
                 });
 
+            modelBuilder.Entity("react_chat_app_backend.Models.WSMessage", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("receiverId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("senderId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("text")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("id");
+
+                    b.ToTable("Messages");
+                });
+
             modelBuilder.Entity("react_chat_app_backend.Models.UserFriendShip", b =>
                 {
-                    b.HasOne("react_chat_app_backend.Models.UserData", "RelatedUser")
+                    b.HasOne("react_chat_app_backend.Models.User", "RelatedUser")
                         .WithMany()
                         .HasForeignKey("RelatedUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("react_chat_app_backend.Models.UserData", "User")
+                    b.HasOne("react_chat_app_backend.Models.User", "User")
                         .WithMany("UserFriendShips")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -107,7 +104,7 @@ namespace react_chat_app_backend.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("react_chat_app_backend.Models.UserData", b =>
+            modelBuilder.Entity("react_chat_app_backend.Models.User", b =>
                 {
                     b.Navigation("UserFriendShips");
                 });

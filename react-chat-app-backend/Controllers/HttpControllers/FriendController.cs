@@ -2,17 +2,18 @@ using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using react_chat_app_backend.Models;
 using react_chat_app_backend.Services;
+using react_chat_app_backend.Services.Interfaces;
 
-namespace react_chat_app_backend.Controllers;
+namespace react_chat_app_backend.Controllers.HttpControllers;
 
 [ApiController]
 [Route("api/[controller]")]
 public class FriendController : ControllerBase
 {
     private readonly ILogger<UserController> _logger;
-    private readonly FriendShipService _friendShipService;
-
-    public FriendController(ILogger<UserController> logger, FriendShipService friendShipService)
+    private readonly IFriendShipService _friendShipService;
+    
+    public FriendController(ILogger<UserController> logger, IFriendShipService friendShipService)
     {
         _logger = logger;
         _friendShipService = friendShipService;

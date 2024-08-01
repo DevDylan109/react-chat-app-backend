@@ -1,23 +1,23 @@
 using System.Net;
 using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
-using react_chat_app_backend.Controllers;
 using react_chat_app_backend.Models;
-using react_chat_app_backend.Repositories;
+using react_chat_app_backend.Repositories.Interfaces;
+using react_chat_app_backend.Services.Interfaces;
 
 namespace react_chat_app_backend.Services;
 
-public class FriendShipService
+public class FriendShipService : IFriendShipService
 {
     private IFriendShipRepository _friendShipRepository;
+    private IWSMessageService _wsMessageService;
     
-    public FriendShipService(IFriendShipRepository friendShipRepository)
+    public FriendShipService(IFriendShipRepository friendShipRepository, IWSMessageService wsMessageService)
     {
         _friendShipRepository = friendShipRepository;
+        _wsMessageService = wsMessageService;
     }
 
-    public async Task<List<UserData>> GetFriendsOfUser(string userId)
+    public async Task<List<User>> GetFriendsOfUser(string userId)
     {
         return await _friendShipRepository.GetFriendsOfUser(userId);
     }
@@ -32,7 +32,7 @@ public class FriendShipService
         
         await StoreFriendRequest(senderId, receiverId);
         var json = JsonSerializer.Serialize(friendRequest);
-        await MessageService.SendMessageToUser(receiverId, json);
+        await _wsMessageService.SendToUser(receiverId, json);
 
         return HttpStatusCode.Created;
     }
@@ -56,10 +56,10 @@ public class FriendShipService
 
         // let the user who sent out the request know that it has been accepted
         var json = JsonSerializer.Serialize(
-            new { friendId = acceptorId, type = "acceptedFriendRequest" } //type = MessageType.notification
+            new { friendId = acceptorId, type = "acceptedFriendRequest" } //type = WSMessageType.notification
         );
         
-        await MessageService.SendMessageToUser(initiatorId, json);
+        await _wsMessageService.SendToUser(initiatorId, json);
 
         return HttpStatusCode.OK;
     }
@@ -73,7 +73,7 @@ public class FriendShipService
         // lookup friend request in database
         var friendship = await _friendShipRepository.GetFriendShip(initiatorId, acceptorId);
 
-        if (await CheckFriendshipExists(initiatorId, acceptorId)) 
+        if (await CheckFriendshipExists(initiatorId, acceptorId) == false) 
             statusCode = HttpStatusCode.NotFound;
         
         // delete this friend request only if it hasn't already been accepted
