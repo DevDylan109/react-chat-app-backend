@@ -90,7 +90,7 @@ public class FriendController : ControllerBase
         
         return result switch
         {
-            not null => Ok(),
+            not null => Ok(result),
             null => NotFound()
         };
     }
