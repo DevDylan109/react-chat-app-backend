@@ -9,10 +9,10 @@ namespace react_chat_app_backend.Services;
 
 public class MessageService
 {
-    private MessageRepository _messageRepository;
+    private IMessageRepository _messageRepository;
     private FriendShipService _friendShipService;
 
-    public MessageService(MessageRepository messageRepository, FriendShipService friendShipService)
+    public MessageService(IMessageRepository messageRepository, FriendShipService friendShipService)
     {
         _messageRepository = messageRepository;
         _friendShipService = friendShipService;
