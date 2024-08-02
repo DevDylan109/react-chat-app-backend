@@ -9,6 +9,7 @@ public class WSMessage
 {
     [Key] 
     public Guid id { get; set; }
+
     public DateTime date { get; set; }
     
     [DisallowNull]

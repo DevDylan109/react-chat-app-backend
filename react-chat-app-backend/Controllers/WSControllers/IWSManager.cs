@@ -5,8 +5,10 @@ namespace react_chat_app_backend.Controllers.WSControllers;
 public interface IWSManager
 {
      void Add(string userId, WebSocket webSocket);
-     WebSocket? Get(string userId);
+     WSClient Get(string userId);
+     WSClient Get(WebSocket webSocket);
      void Remove(string userId);
-     List<WebSocket> All();
+     void Remove(WebSocket webSocket);
+     List<WSClient> All();
      void Clear();
 }

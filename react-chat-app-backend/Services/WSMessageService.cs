@@ -80,38 +80,37 @@ public class WSMessageService : IWSMessageService
     public async Task Forward(WSMessage wsMessage)
     {
         var receiverId = wsMessage.receiverId;
-        var receiverConnection = _wsManager.Get(receiverId);
+        var wsClient = _wsManager.Get(receiverId);
+
+        if (wsClient == null)
+            return;
         
-        wsMessage.date = DateTime.UtcNow;
+        var receiverConnection = wsClient.webSocket;
         var buffer = _wsHelpers.ToJsonByteArray(wsMessage);
-        
-        if (receiverConnection != null)
-        {
-            var bufferLength = _wsHelpers.GetLengthWithoutPadding(buffer);
-            
-            await receiverConnection.SendAsync(
-                new ArraySegment<byte>(buffer, 0, bufferLength),
-                WebSocketMessageType.Text,
-                WebSocketMessageFlags.EndOfMessage,
-                CancellationToken.None
-            );
-        }
+        var bufferLength = _wsHelpers.GetLengthWithoutPadding(buffer);
+        await receiverConnection.SendAsync(
+            new ArraySegment<byte>(buffer, 0, bufferLength),
+            WebSocketMessageType.Text,
+            WebSocketMessageFlags.EndOfMessage,
+            CancellationToken.None
+        );
     }
     
     public async Task SendToUser(string userId, string json)
     {
-        var userConnection = _wsManager.Get(userId);
-        if (userConnection != null)
-        {
-            var buffer = Encoding.UTF8.GetBytes(json);
+        var wsClient = _wsManager.Get(userId);
+
+        if (wsClient == null)
+            return;
         
-            await userConnection.SendAsync(
-                new ArraySegment<byte>(buffer, 0, buffer.Length),
-                WebSocketMessageType.Text,
-                WebSocketMessageFlags.EndOfMessage,
-                CancellationToken.None
-            );
-        }
+        var userConnection = wsClient.webSocket;
+        var buffer = Encoding.UTF8.GetBytes(json);
+        await userConnection.SendAsync(
+            new ArraySegment<byte>(buffer, 0, buffer.Length),
+            WebSocketMessageType.Text,
+            WebSocketMessageFlags.EndOfMessage,
+            CancellationToken.None
+        );
     }
     
     // TODO: Fix circular dependency for FriendShipService and WSMessageService :(

@@ -1,5 +1,6 @@
 using System.Net.WebSockets;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Protocol;
 using react_chat_app_backend.Services;
 using react_chat_app_backend.Services.Interfaces;
 
@@ -45,6 +46,8 @@ public class WSController : ControllerBase
             
             if (receiveResult.CloseStatus.HasValue)
             {
+                _wsManager.Remove(webSocket);
+                
                 await webSocket.CloseAsync(
                     receiveResult.CloseStatus.Value,
                     receiveResult.CloseStatusDescription,
