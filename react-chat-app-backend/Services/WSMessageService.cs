@@ -47,7 +47,7 @@ public class WSMessageService : IWSMessageService
         var userId2 = userIds.userId2;
 
         var messages = await _wsMessageRepository.GetMessages(userId1, userId2);
-        var messageHistory = new { messages, type = WSMessageType.chatHistory };
+        var messageHistory = new { messages, type = "chatHistory" }; //type = WSMessageType.chatHistory
         
         buffer = _wsHelpers.ToJsonByteArray(messageHistory);
 
