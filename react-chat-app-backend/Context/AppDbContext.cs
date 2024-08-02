@@ -29,13 +29,13 @@ public partial class AppDbContext : DbContext
             .HasOne(ur => ur.User)
             .WithMany(u => u.UserFriendShips)
             .HasForeignKey(ur => ur.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<UserFriendShip>()
             .HasOne(ur => ur.RelatedUser)
             .WithMany()
             .HasForeignKey(ur => ur.RelatedUserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
