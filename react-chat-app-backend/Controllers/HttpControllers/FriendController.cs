@@ -81,7 +81,7 @@ public class FriendController : ControllerBase
         };
     }
     
-    [HttpDelete("FetchFriends/{userId1}")]
+    [HttpGet("FetchFriends/{userId1}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
