@@ -18,11 +18,13 @@ public class FriendShipRepository : IFriendShipRepository
     {
         var list1 = await _appDbContext.UserFriendShips
             .Where(ur => ur.UserId == userId)
+            .Where(ur => ur.isPending == false)
             .Select(ur => ur.RelatedUser)
             .ToListAsync();
 
         var list2 = await _appDbContext.UserFriendShips
             .Where(ur => ur.RelatedUserId == userId)
+            .Where(ur => ur.isPending == false)
             .Select(ur => ur.User)
             .ToListAsync();
 
