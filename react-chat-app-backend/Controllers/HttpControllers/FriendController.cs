@@ -81,13 +81,13 @@ public class FriendController : ControllerBase
         };
     }
     
-    [HttpGet("FetchFriends/{userId1}")]
+    [HttpGet("FetchFriends/{userId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> FetchFriends(string userId1)
+    public async Task<IActionResult> FetchFriends(string userId)
     {
-        var result = await _friendShipService.GetFriendsOfUser(userId1);
+        var result = await _friendShipService.GetFriendsOfUser(userId);
         
         return result switch
         {
@@ -95,5 +95,20 @@ public class FriendController : ControllerBase
             null => NotFound()
         };
     }
-    
+
+    [HttpGet("FetchPotentialFriends/{userId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> FetchPotentialFriends(string userId)
+    {
+        var result = await _friendShipService.GetPotentialFriendsOfUser(userId);
+
+        return result switch
+        {
+            not null => Ok(result),
+            null => NotFound()
+        };
+    }
+
 }

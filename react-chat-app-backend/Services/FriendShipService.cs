@@ -22,6 +22,11 @@ public class FriendShipService : IFriendShipService
         return await _friendShipRepository.GetFriendsOfUser(userId);
     }
 
+    public async Task<List<User>> GetPotentialFriendsOfUser(string userId)
+    {
+        return await _friendShipRepository.GetPotentialFriendsOfUser(userId);
+    }
+
     public async Task<HttpStatusCode> StoreAndForwardFriendRequest(FriendRequest friendRequest)
     {
         var senderId = friendRequest.initiatorId;

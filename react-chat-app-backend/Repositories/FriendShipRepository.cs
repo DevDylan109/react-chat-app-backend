@@ -32,7 +32,16 @@ public class FriendShipRepository : IFriendShipRepository
         
         return friends;
     }
-    
+
+    public async Task<List<User>> GetPotentialFriendsOfUser(string userId)
+    {
+        return await _appDbContext.UserFriendShips
+            .Where(ur => ur.UserId == userId)
+            .Where(ur => ur.isPending == true)
+            .Select(ur => ur.RelatedUser)
+            .ToListAsync();
+    }
+
     public async Task<UserFriendShip?> GetFriendShip(string userId1, string userId2)
     {
         return await _appDbContext.UserFriendShips.FirstOrDefaultAsync(ur =>
