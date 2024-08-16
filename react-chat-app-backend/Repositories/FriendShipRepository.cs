@@ -35,7 +35,15 @@ public class FriendShipRepository : IFriendShipRepository
         return friends;
     }
 
-    public async Task<List<User>> GetPotentialFriendsOfUser(string userId)
+    public async Task<List<User>> GetIncomingFriendRequestsOfUser(string userId)
+    {
+        return  await _appDbContext.UserFriendShips
+            .Where(ur => ur.RelatedUserId == userId)
+            .Where(ur => ur.isPending == true)
+            .Select(ur => ur.User)
+            .ToListAsync();
+    }
+    public async Task<List<User>> GetOutgoingFriendRequestsOfUser(string userId)
     {
         return await _appDbContext.UserFriendShips
             .Where(ur => ur.UserId == userId)

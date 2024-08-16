@@ -6,7 +6,8 @@ namespace react_chat_app_backend.Services.Interfaces;
 public interface IFriendShipService
 {
      Task<List<User>> GetFriendsOfUser(string userId);
-     Task<List<User>> GetPotentialFriendsOfUser(string userId);
+     Task<List<User>> GetIncomingFriendRequestsOfUser(string userId);
+     Task<List<User>> GetOutgoingFriendRequestsOfUser(string userId);
      Task<HttpStatusCode> StoreAndForwardFriendRequest(FriendRequest friendRequest);
      Task<HttpStatusCode> AcceptFriendRequest(FriendRequest friendRequest);
      Task<HttpStatusCode> DeclineFriendRequest(FriendRequest friendRequest);

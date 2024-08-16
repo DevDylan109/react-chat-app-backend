@@ -22,9 +22,14 @@ public class FriendShipService : IFriendShipService
         return await _friendShipRepository.GetFriendsOfUser(userId);
     }
 
-    public async Task<List<User>> GetPotentialFriendsOfUser(string userId)
+    public async Task<List<User>> GetIncomingFriendRequestsOfUser(string userId)
     {
-        return await _friendShipRepository.GetPotentialFriendsOfUser(userId);
+        return await _friendShipRepository.GetIncomingFriendRequestsOfUser(userId);
+    }
+
+    public async Task<List<User>> GetOutgoingFriendRequestsOfUser(string userId)
+    {
+        return await _friendShipRepository.GetOutgoingFriendRequestsOfUser(userId);
     }
 
     public async Task<HttpStatusCode> StoreAndForwardFriendRequest(FriendRequest friendRequest)
