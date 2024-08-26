@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using react_chat_app_backend.Controllers.WSControllers;
 using react_chat_app_backend.Models;
 
 namespace react_chat_app_backend.Helpers;
@@ -17,7 +18,7 @@ public class WSHelpers
         var json = Encoding.UTF8.GetString(buffer).Trim('\0');
         return JsonSerializer.Deserialize<T>(json);
     }
-    
+
     public int GetLengthWithoutPadding(byte[] buffer)
     {
         var i = buffer.Length - 1;

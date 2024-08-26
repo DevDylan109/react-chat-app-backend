@@ -4,6 +4,6 @@ namespace react_chat_app_backend.Repositories.Interfaces;
 
 public interface IWSMessageRepository
 {
-    Task AddMessage(WSMessage wsMessage);
-    Task<List<WSMessage>> GetMessages(string userId1, string userId2);
+    Task AddMessage(ChatMessage chatMessage);
+    Task<List<ChatMessage>> GetMessages(string userId1, string userId2);
 }

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace react_chat_app_backend.Models;
 
-public class WSMessage
+public class ChatMessage
 {
     [Key] 
     public Guid id { get; set; }
@@ -19,7 +19,7 @@ public class WSMessage
     [DisallowNull]
     public string text { get; set; }
 
-    public WSMessage()
+    public ChatMessage()
     {
         id = Guid.NewGuid();
         date = DateTime.UtcNow;

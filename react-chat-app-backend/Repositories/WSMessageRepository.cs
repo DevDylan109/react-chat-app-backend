@@ -14,13 +14,13 @@ public class WSMessageRepository : IWSMessageRepository
         _appDbContext = appDbContext;
     }
 
-    public async Task AddMessage(WSMessage wsMessage)
+    public async Task AddMessage(ChatMessage chatMessage)
     {
-        _appDbContext.Messages.Add(wsMessage);
+        _appDbContext.Messages.Add(chatMessage);
         await _appDbContext.SaveChangesAsync();
     }
 
-    public async Task<List<WSMessage>> GetMessages(string userId1, string userId2)
+    public async Task<List<ChatMessage>> GetMessages(string userId1, string userId2)
     {
          return await _appDbContext.Messages.Where(m =>
                 m.senderId == userId1 && m.receiverId == userId2 ||

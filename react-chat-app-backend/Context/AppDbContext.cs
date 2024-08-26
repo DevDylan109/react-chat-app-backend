@@ -9,7 +9,7 @@ namespace react_chat_app_backend.Context;
 
 public partial class AppDbContext : DbContext
 {
-    public DbSet<WSMessage> Messages { get; set; }
+    public DbSet<ChatMessage> Messages { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<UserFriendShip> UserFriendShips { get; set; }
     

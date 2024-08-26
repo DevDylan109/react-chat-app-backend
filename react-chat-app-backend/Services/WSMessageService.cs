@@ -50,7 +50,6 @@ public class WSMessageService : IWSMessageService
         var messageHistory = new { messages, type = "chatHistory" }; //type = WSMessageType.chatHistory
         
         buffer = _wsHelpers.ToJsonByteArray(messageHistory);
-
         await webSocket.SendAsync(
             new ArraySegment<byte>(buffer, 0, buffer.Length),
             WebSocketMessageType.Text,
@@ -61,7 +60,7 @@ public class WSMessageService : IWSMessageService
     
     public async Task StoreAndForward(byte[] buffer)
     {
-        var message = _wsHelpers.GetModelData<WSMessage>(buffer);
+        var message = _wsHelpers.GetModelData<ChatMessage>(buffer);
         var senderId = message.senderId;
         var receiverId = message.receiverId;
         
@@ -72,22 +71,23 @@ public class WSMessageService : IWSMessageService
         }
     }
     
-    public async Task Store(WSMessage wsMessage)
+    public async Task Store(ChatMessage chatMessage)
     {
-        await _wsMessageRepository.AddMessage(wsMessage);
+        await _wsMessageRepository.AddMessage(chatMessage);
     }
     
-    public async Task Forward(WSMessage wsMessage)
+    public async Task Forward(ChatMessage chatMessage)
     {
-        var receiverId = wsMessage.receiverId;
+        var receiverId = chatMessage.receiverId;
         var wsClient = _wsManager.Get(receiverId);
-
         if (wsClient == null)
             return;
-        
-        var receiverConnection = wsClient.webSocket;
+
+        var wsMessage = new { chatMessage, type = "chatMessage" };
         var buffer = _wsHelpers.ToJsonByteArray(wsMessage);
         var bufferLength = _wsHelpers.GetLengthWithoutPadding(buffer);
+        
+        var receiverConnection = wsClient.webSocket;
         await receiverConnection.SendAsync(
             new ArraySegment<byte>(buffer, 0, bufferLength),
             WebSocketMessageType.Text,
