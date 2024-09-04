@@ -7,4 +7,5 @@ public interface IUserRepository
      Task<User?> GetUser(string userId);
      Task CreateUser(User user);
      Task RemoveUser(User user);
+     Task SetUsername(string userId, string newName);
 }

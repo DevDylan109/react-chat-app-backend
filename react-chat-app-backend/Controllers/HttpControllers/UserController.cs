@@ -19,6 +19,20 @@ public class UserController : ControllerBase
         _userService = userService;
     }
 
+    [HttpGet("GetUser/{userId}")]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetUser(string userId)
+    {
+        var result = await _userService.GetUser(userId);
+        
+        return result switch
+        {
+            null => NotFound(),
+            not null => Ok(result)
+        };
+    }
+    
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -33,7 +47,7 @@ public class UserController : ControllerBase
         };
     }
     
-    [HttpDelete("{userId}")]
+    [HttpDelete("DeleteUser{userId}")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> DeleteUser(string userId)
@@ -46,5 +60,19 @@ public class UserController : ControllerBase
             HttpStatusCode.OK => Ok()
         };
     }
-    
+
+    [HttpPut("ChangeUsername/{userId}/{username}")]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> ChangeUsername(string userId, string username)
+    {
+        var result = await _userService.ChangeUserName(userId, username);
+
+        return result switch
+        {
+            HttpStatusCode.NotFound => NotFound(),
+            HttpStatusCode.OK => Ok()
+        };
+    }
+
 }

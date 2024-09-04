@@ -31,4 +31,11 @@ public class UserRepository : IUserRepository
         _appDbContext.Remove(user);
         await _appDbContext.SaveChangesAsync();
     }
+
+    public async Task SetUsername(string userId, string newName)
+    {
+        var user = await GetUser(userId);
+        user.name = newName;
+        await _appDbContext.SaveChangesAsync();
+    }
 }

@@ -13,7 +13,12 @@ public class UserService : IUserService
     {
         _userRepository = userRepository;
     }
-    
+
+    public async Task<User> GetUser(string userId)
+    {
+        return await _userRepository.GetUser(userId);
+    }
+
     public async Task<HttpStatusCode> CreateUser(User user)
     {
         var userId = user.userId;
@@ -42,5 +47,16 @@ public class UserService : IUserService
         var user = await _userRepository.GetUser(userId);
         return user != null;
     }
-    
+
+    public async Task<HttpStatusCode> ChangeUserName(string userId, string newUsername)
+    {
+        if (await CheckUserExists(userId) == false)
+        {
+            return HttpStatusCode.NotFound;
+        }
+        
+        await _userRepository.SetUsername(userId, newUsername);
+        return HttpStatusCode.OK;
+    }
+
 }
