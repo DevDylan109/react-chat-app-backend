@@ -48,6 +48,18 @@ public class UserService : IUserService
         return user != null;
     }
 
+    public async Task<HttpStatusCode> CheckUsernameExists(string username)
+    {
+        if (await _userRepository.CheckUsernameExists(username))
+        {
+            return HttpStatusCode.OK;
+        }
+        else
+        {
+            return HttpStatusCode.NotFound;
+        }
+    }
+
     public async Task<HttpStatusCode> ChangeUserName(string userId, string newUsername)
     {
         if (await CheckUserExists(userId) == false)

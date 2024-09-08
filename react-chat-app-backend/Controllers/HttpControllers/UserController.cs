@@ -33,7 +33,7 @@ public class UserController : ControllerBase
         };
     }
     
-    [HttpPost]
+    [HttpPost("CreateUser")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> CreateUser(User user)
@@ -68,6 +68,20 @@ public class UserController : ControllerBase
     {
         var result = await _userService.ChangeUserName(userId, username);
 
+        return result switch
+        {
+            HttpStatusCode.NotFound => NotFound(),
+            HttpStatusCode.OK => Ok()
+        };
+    }
+    
+    [HttpPost("CheckUsernameExists/{username}")]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> CheckUsernameExists(string username)
+    {
+        var result = await _userService.CheckUsernameExists(username);
+        
         return result switch
         {
             HttpStatusCode.NotFound => NotFound(),

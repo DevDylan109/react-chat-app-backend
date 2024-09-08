@@ -38,4 +38,9 @@ public class UserRepository : IUserRepository
         user.name = newName;
         await _appDbContext.SaveChangesAsync();
     }
+
+    public async Task<bool> CheckUsernameExists(string username)
+    {
+        return await _appDbContext.Users.AnyAsync(ur => ur.userId == username);
+    }
 }
