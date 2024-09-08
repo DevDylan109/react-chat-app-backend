@@ -33,6 +33,15 @@ public class UserController : ControllerBase
         };
     }
     
+    [HttpPost("LoginUser/{userId}/{password}")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> LoginUser(string userId, string password)
+    {
+        var user = await _userService.GetUser(userId);
+        return user.password == password ? Ok() : BadRequest(); 
+    }
+    
     [HttpPost("CreateUser")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
