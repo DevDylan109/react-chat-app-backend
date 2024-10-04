@@ -56,7 +56,7 @@ public class UserController : ControllerBase
         };
     }
     
-    [HttpDelete("DeleteUser{userId}")]
+    [HttpDelete("DeleteUser/{userId}")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> DeleteUser(string userId)
