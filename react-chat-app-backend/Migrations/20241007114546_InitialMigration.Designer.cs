@@ -11,8 +11,8 @@ using react_chat_app_backend.Context;
 namespace react_chat_app_backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240826102835_ChatMessage")]
-    partial class ChatMessage
+    [Migration("20241007114546_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,6 +27,10 @@ namespace react_chat_app_backend.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("name")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("receiverId")
@@ -51,7 +55,7 @@ namespace react_chat_app_backend.Migrations
                     b.Property<string>("userId")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("lastMessage")
+                    b.Property<DateTime?>("joinDate")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("name")

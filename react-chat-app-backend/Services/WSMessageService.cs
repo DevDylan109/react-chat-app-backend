@@ -15,14 +15,16 @@ public class WSMessageService : IWSMessageService
     private WSHelpers _wsHelpers;
     // FriendShipService _friendShipService;
     private IFriendShipRepository _friendShipRepository;
+    private IUserRepository _userRepository;
 
-    public WSMessageService(IWSMessageRepository wsMessageRepository, IFriendShipRepository friendShipRepository, IWSManager wsManager)
+    public WSMessageService(IWSMessageRepository wsMessageRepository, IFriendShipRepository friendShipRepository, IUserRepository userRepository, IWSManager wsManager)
     {
         _wsMessageRepository = wsMessageRepository;
         _wsManager = wsManager;
         _wsHelpers = new WSHelpers();
         //_friendShipService = friendShipService;
         _friendShipRepository = friendShipRepository;
+        _userRepository = userRepository;
     }
 
     public async Task Handle(WebSocket webSocket, byte[] buffer)
@@ -31,7 +33,7 @@ public class WSMessageService : IWSMessageService
         switch (messageType)
         {
             case WSMessageType.chatMessage:
-                await StoreAndForward(buffer);
+                await HandleChatMessage(buffer);
                 break;
                 
             case WSMessageType.chatHistory:
@@ -57,12 +59,14 @@ public class WSMessageService : IWSMessageService
             CancellationToken.None
         );
     }
-    
-    public async Task StoreAndForward(byte[] buffer)
+
+    public async Task HandleChatMessage(byte[] buffer)
     {
         var message = _wsHelpers.GetModelData<ChatMessage>(buffer);
         var senderId = message.senderId;
         var receiverId = message.receiverId;
+        var user = await _userRepository.GetUser(senderId);
+        message.name = user.name;
         
         if (await CheckFriendshipExists(senderId, receiverId))
         {

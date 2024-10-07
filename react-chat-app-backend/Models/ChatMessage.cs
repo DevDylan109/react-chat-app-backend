@@ -17,6 +17,9 @@ public class ChatMessage
     [DisallowNull]
     public string receiverId { get; set; }
     [DisallowNull]
+    public string name { get; set; }
+
+    [DisallowNull] 
     public string text { get; set; }
 
     public ChatMessage()

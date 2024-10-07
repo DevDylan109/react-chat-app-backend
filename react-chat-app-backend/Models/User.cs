@@ -10,7 +10,6 @@ public class User
     public string password { get; set; }
     public string? photoURL { get; set; }
     public string name { get; set; }
-    public string? lastMessage { get; set; }
     public DateTime? joinDate { get; set; }
 
     public List<UserFriendShip>? UserFriendShips { get; set; }

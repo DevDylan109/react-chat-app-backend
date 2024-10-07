@@ -26,6 +26,10 @@ namespace react_chat_app_backend.Migrations
                     b.Property<DateTime>("date")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("receiverId")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -49,9 +53,6 @@ namespace react_chat_app_backend.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("joinDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("lastMessage")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("name")

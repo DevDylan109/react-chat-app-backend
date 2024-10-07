@@ -19,6 +19,7 @@ namespace react_chat_app_backend.Migrations
                     date = table.Column<DateTime>(type: "TEXT", nullable: false),
                     senderId = table.Column<string>(type: "TEXT", nullable: false),
                     receiverId = table.Column<string>(type: "TEXT", nullable: false),
+                    name = table.Column<string>(type: "TEXT", nullable: false),
                     text = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
@@ -34,7 +35,7 @@ namespace react_chat_app_backend.Migrations
                     password = table.Column<string>(type: "TEXT", nullable: false),
                     photoURL = table.Column<string>(type: "TEXT", nullable: true),
                     name = table.Column<string>(type: "TEXT", nullable: false),
-                    lastMessage = table.Column<string>(type: "TEXT", nullable: true)
+                    joinDate = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -57,13 +58,13 @@ namespace react_chat_app_backend.Migrations
                         column: x => x.RelatedUserId,
                         principalTable: "Users",
                         principalColumn: "userId",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_UserFriendShips_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "userId",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
