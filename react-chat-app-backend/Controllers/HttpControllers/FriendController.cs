@@ -28,6 +28,8 @@ public class FriendController : ControllerBase
 
         return result switch
         {
+            HttpStatusCode.BadRequest => BadRequest(),
+            HttpStatusCode.NotFound => NotFound(),
             HttpStatusCode.Conflict => Conflict(),
             HttpStatusCode.Created => Created()
         };

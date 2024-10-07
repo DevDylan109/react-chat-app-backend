@@ -10,11 +10,13 @@ public class FriendShipService : IFriendShipService
 {
     private IFriendShipRepository _friendShipRepository;
     private IWSMessageService _wsMessageService;
+    private IUserService _userService;
     
-    public FriendShipService(IFriendShipRepository friendShipRepository, IWSMessageService wsMessageService)
+    public FriendShipService(IFriendShipRepository friendShipRepository, IWSMessageService wsMessageService, IUserService userService)
     {
         _friendShipRepository = friendShipRepository;
         _wsMessageService = wsMessageService;
+        _userService = userService;
     }
 
     public async Task<List<User>> GetFriendsOfUser(string userId)
@@ -36,7 +38,13 @@ public class FriendShipService : IFriendShipService
     {
         var senderId = friendRequest.initiatorId;
         var receiverId = friendRequest.acceptorId;
+
+        if (receiverId == senderId)
+            return HttpStatusCode.BadRequest;
         
+        if (await _userService.CheckUserExists(receiverId) == false)
+            return HttpStatusCode.NotFound;
+
         if (await CheckFriendshipExists(senderId, receiverId)) 
             return HttpStatusCode.Conflict;
         
