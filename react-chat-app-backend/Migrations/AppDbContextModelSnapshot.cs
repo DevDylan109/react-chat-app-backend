@@ -30,6 +30,10 @@ namespace react_chat_app_backend.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("photoURL")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("receiverId")
                         .IsRequired()
                         .HasColumnType("TEXT");

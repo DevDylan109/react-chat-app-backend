@@ -84,6 +84,21 @@ public class UserController : ControllerBase
         };
     }
     
+    [HttpPut("ChangeProfilePicture/{userId}/{imageURL}")]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> ChangeProfilePicture(string userId, string imageURL)
+    {
+        imageURL = Uri.UnescapeDataString(imageURL);
+        var result = await _userService.ChangeProfilePicture(userId, imageURL);
+        
+        return result switch
+        {
+            HttpStatusCode.NotFound => NotFound(),
+            HttpStatusCode.OK => Ok()
+        };
+    }
+    
     [HttpPost("CheckUsernameExists/{username}")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status200OK)]

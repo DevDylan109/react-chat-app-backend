@@ -11,8 +11,8 @@ using react_chat_app_backend.Context;
 namespace react_chat_app_backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241007114546_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20241008163449_FirstMigration")]
+    partial class FirstMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -30,6 +30,10 @@ namespace react_chat_app_backend.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("photoURL")
                         .IsRequired()
                         .HasColumnType("TEXT");
 

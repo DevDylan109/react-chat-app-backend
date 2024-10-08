@@ -8,5 +8,6 @@ public interface IUserRepository
      Task CreateUser(User user);
      Task RemoveUser(User user);
      Task SetUsername(string userId, string newName);
+     Task SetImageURL(string userId, string imageURL);
      Task<bool> CheckUsernameExists(string username);
 }

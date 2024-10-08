@@ -14,7 +14,7 @@ public class UserRepository : IUserRepository
     {
         _appDbContext = appDbContext;
     }
-    
+
     public async Task CreateUser(User user)
     {
         await _appDbContext.Users.AddAsync(user);
@@ -36,6 +36,13 @@ public class UserRepository : IUserRepository
     {
         var user = await GetUser(userId);
         user.name = newName;
+        await _appDbContext.SaveChangesAsync();
+    }
+
+    public async Task SetImageURL(string userId, string imageURL)
+    {
+        var user = await GetUser(userId);
+        user.photoURL = imageURL;
         await _appDbContext.SaveChangesAsync();
     }
 

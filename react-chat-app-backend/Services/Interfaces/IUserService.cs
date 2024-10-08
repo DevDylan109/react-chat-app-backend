@@ -10,5 +10,6 @@ public interface IUserService
      Task<HttpStatusCode> DeleteUser(string userId); 
      Task<bool> CheckUserExists(string userId);
      Task<HttpStatusCode> ChangeUserName(string userId, string newUsername);
+     Task<HttpStatusCode> ChangeProfilePicture(string userId, string imageURL);
      Task<HttpStatusCode> CheckUsernameExists(string username);
 }

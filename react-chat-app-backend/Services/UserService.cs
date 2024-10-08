@@ -71,4 +71,15 @@ public class UserService : IUserService
         return HttpStatusCode.OK;
     }
 
+    public async Task<HttpStatusCode> ChangeProfilePicture(string userId, string imageURL)
+    {
+        if (await CheckUserExists(userId) == false)
+        {
+            return HttpStatusCode.NotFound;
+        }
+
+        await _userRepository.SetImageURL(userId, imageURL);
+        return HttpStatusCode.OK;
+    }
+
 }

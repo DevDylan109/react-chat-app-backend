@@ -67,6 +67,7 @@ public class WSMessageService : IWSMessageService
         var receiverId = message.receiverId;
         var user = await _userRepository.GetUser(senderId);
         message.name = user.name;
+        message.photoURL = user.photoURL;
         
         if (await CheckFriendshipExists(senderId, receiverId))
         {

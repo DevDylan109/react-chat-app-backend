@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace react_chat_app_backend.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class FirstMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -20,7 +20,8 @@ namespace react_chat_app_backend.Migrations
                     senderId = table.Column<string>(type: "TEXT", nullable: false),
                     receiverId = table.Column<string>(type: "TEXT", nullable: false),
                     name = table.Column<string>(type: "TEXT", nullable: false),
-                    text = table.Column<string>(type: "TEXT", nullable: false)
+                    text = table.Column<string>(type: "TEXT", nullable: false),
+                    photoURL = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {

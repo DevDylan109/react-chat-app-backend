@@ -18,9 +18,10 @@ public class ChatMessage
     public string receiverId { get; set; }
     [DisallowNull]
     public string name { get; set; }
-
     [DisallowNull] 
     public string text { get; set; }
+    [AllowNull]
+    public string photoURL { get; set; }
 
     public ChatMessage()
     {
