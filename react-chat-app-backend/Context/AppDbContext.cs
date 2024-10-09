@@ -36,6 +36,18 @@ public partial class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(ur => ur.RelatedUserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ChatMessage>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(m => m.receiverId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ChatMessage>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(m => m.senderId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
