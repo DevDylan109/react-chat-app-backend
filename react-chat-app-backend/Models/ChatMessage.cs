@@ -12,16 +12,11 @@ public class ChatMessage
 
     public DateTime date { get; set; }
     
-    [DisallowNull]
     public string senderId { get; set; }
-    [DisallowNull]
     public string receiverId { get; set; }
-    [DisallowNull]
     public string name { get; set; }
-    [DisallowNull] 
     public string text { get; set; }
-    [AllowNull]
-    public string photoURL { get; set; }
+    public string? photoURL { get; set; }
 
     public ChatMessage()
     {
