@@ -33,7 +33,7 @@ public class WSMessageService : IWSMessageService
         switch (messageType)
         {
             case WSMessageType.chatMessage:
-                await HandleChatMessage(buffer);
+                await HandleChatMessage(webSocket, buffer);
                 break;
                 
             case WSMessageType.chatHistory:
@@ -44,35 +44,73 @@ public class WSMessageService : IWSMessageService
 
     public async Task FetchHistory(WebSocket webSocket, byte[] buffer)
     {
-        var userIds = _wsHelpers.GetModelData<Users>(buffer);
-        var userId1 = userIds.userId1;
-        var userId2 = userIds.userId2;
-
-        var messages = await _wsMessageRepository.GetMessages(userId1, userId2);
-        var messageHistory = new { messages, type = "chatHistory" }; //type = WSMessageType.chatHistory
+        try
+        {
+            var userIds = _wsHelpers.GetModelData<Users>(buffer);
+            var userId1 = userIds.userId1;
+            var userId2 = userIds.userId2;
         
-        buffer = _wsHelpers.ToJsonByteArray(messageHistory);
-        await webSocket.SendAsync(
-            new ArraySegment<byte>(buffer, 0, buffer.Length),
-            WebSocketMessageType.Text,
-            WebSocketMessageFlags.EndOfMessage,
-            CancellationToken.None
-        );
+            var messages = await _wsMessageRepository.GetMessages(userId1, userId2);
+            var messageHistory = new { messages, type = "chatHistory" };
+        
+            if (webSocket.State != WebSocketState.Open) {
+                return;
+            }
+            
+            buffer = _wsHelpers.ToJsonByteArray(messageHistory);
+            await webSocket.SendAsync(
+                new ArraySegment<byte>(buffer, 0, buffer.Length),
+                WebSocketMessageType.Text,
+                WebSocketMessageFlags.EndOfMessage,
+                CancellationToken.None
+            );
+        }
+        catch (Exception e)
+        {
+            if (webSocket.State != WebSocketState.Open) {
+                return;
+            }
+            
+            buffer = _wsHelpers.ToJsonByteArray(new { message = "An unexpected error occurred on the server. Please try again later.", type = "error" });
+            await webSocket.SendAsync(
+                new ArraySegment<byte>(buffer, 0, buffer.Length),
+                WebSocketMessageType.Text,
+                WebSocketMessageFlags.EndOfMessage,
+                CancellationToken.None
+            );
+        }
     }
 
-    public async Task HandleChatMessage(byte[] buffer)
+    public async Task HandleChatMessage(WebSocket webSocket, byte[] buffer)
     {
-        var message = _wsHelpers.GetModelData<ChatMessage>(buffer);
-        var senderId = message.senderId;
-        var receiverId = message.receiverId;
-        var user = await _userRepository.GetUser(senderId);
-        message.name = user.name;
-        message.photoURL = user.photoURL;
-        
-        if (await CheckFriendshipExists(senderId, receiverId))
+        try
         {
-            await Store(message);
-            await Forward(message);   
+            var message = _wsHelpers.GetModelData<ChatMessage>(buffer);
+            var senderId = message.senderId;
+            var receiverId = message.receiverId;
+            var user = await _userRepository.GetUser(senderId);
+            message.name = user.name;
+            message.photoURL = user.photoURL;
+        
+            if (await CheckFriendshipExists(senderId, receiverId))
+            {
+                await Store(message);
+                await Forward(message);   
+            }
+        }
+        catch (Exception e)
+        {
+            if (webSocket.State != WebSocketState.Open) {
+                return;
+            }
+            
+            buffer = _wsHelpers.ToJsonByteArray(new { message = "An unexpected error occurred on the server. Please try again later.", type = "error" });
+            await webSocket.SendAsync(
+                new ArraySegment<byte>(buffer, 0, buffer.Length),
+                WebSocketMessageType.Text,
+                WebSocketMessageFlags.EndOfMessage,
+                CancellationToken.None
+            );
         }
     }
     
@@ -85,9 +123,13 @@ public class WSMessageService : IWSMessageService
     {
         var receiverId = chatMessage.receiverId;
         var wsClient = _wsManager.Get(receiverId);
+        
         if (wsClient == null)
             return;
-
+        if (wsClient.webSocket.State != WebSocketState.Open) {
+            return;
+        }
+        
         var wsMessage = new { chatMessage, type = "chatMessage" };
         var buffer = _wsHelpers.ToJsonByteArray(wsMessage);
         var bufferLength = _wsHelpers.GetLengthWithoutPadding(buffer);
@@ -107,6 +149,10 @@ public class WSMessageService : IWSMessageService
 
         if (wsClient == null)
             return;
+
+        if (wsClient.webSocket.State != WebSocketState.Open) {
+            return;
+        }
         
         var userConnection = wsClient.webSocket;
         var buffer = Encoding.UTF8.GetBytes(json);
