@@ -25,6 +25,7 @@ public class WSMessageRepository : IWSMessageRepository
          return await _appDbContext.Messages.Where(m =>
                 m.senderId == userId1 && m.receiverId == userId2 ||
                 m.senderId == userId2 && m.receiverId == userId1)
+             .OrderBy(m => m.date)
             .ToListAsync();
     }
     
