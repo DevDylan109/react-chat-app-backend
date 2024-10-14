@@ -46,17 +46,21 @@ public class WSMessageService : IWSMessageService
     {
         try
         {
-            var userIds = _wsHelpers.GetModelData<Users>(buffer);
-            var userId1 = userIds.userId1;
-            var userId2 = userIds.userId2;
-        
-            var messages = await _wsMessageRepository.GetMessages(userId1, userId2);
-            var messageHistory = new { messages, type = "chatHistory" };
-        
-            if (webSocket.State != WebSocketState.Open) {
-                return;
+            var request = _wsHelpers.GetModelData<ChatMessageHistoryRequest>(buffer);
+            var userId1 = request.userId1;
+            var userId2 = request.userId2;
+            var skip = request.skip;
+            var take = request.take;
+
+            List<ChatMessage> messages;
+            
+            if (skip == 0 && take == 0) {
+                messages = await _wsMessageRepository.GetAllMessages(userId1, userId2);   
+            } else {
+                messages = await _wsMessageRepository.GetMessageSequence(userId1, userId2, skip, take);
             }
             
+            var messageHistory = new { messages, type = "chatHistory" };
             buffer = _wsHelpers.ToJsonByteArray(messageHistory);
             await webSocket.SendAsync(
                 new ArraySegment<byte>(buffer, 0, buffer.Length),
@@ -67,10 +71,6 @@ public class WSMessageService : IWSMessageService
         }
         catch (Exception e)
         {
-            if (webSocket.State != WebSocketState.Open) {
-                return;
-            }
-            
             buffer = _wsHelpers.ToJsonByteArray(new { message = "An unexpected error occurred on the server. Please try again later.", type = "error" });
             await webSocket.SendAsync(
                 new ArraySegment<byte>(buffer, 0, buffer.Length),

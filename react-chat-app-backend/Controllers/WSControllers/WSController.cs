@@ -25,7 +25,6 @@ public class WSController : ControllerBase
             string userId = HttpContext.Request.Query["userID"];
             if (!string.IsNullOrEmpty(userId))
             {
-                Console.WriteLine($"user id: {userId}");
                 using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
                 _wsManager.Add(userId, webSocket);
                 await Listener(webSocket);
