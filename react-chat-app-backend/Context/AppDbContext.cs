@@ -12,7 +12,8 @@ public partial class AppDbContext : DbContext
     public DbSet<ChatMessage> Messages { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<UserFriendShip> UserFriendShips { get; set; }
-    
+    public DbSet<ChatTab> ChatTabs { get; set; }
+
     public string DbPath { get; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options)
@@ -47,6 +48,12 @@ public partial class AppDbContext : DbContext
             .HasOne<User>()
             .WithMany()
             .HasForeignKey(m => m.senderId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ChatTab>()
+            .HasOne<User>()
+            .WithOne()
+            .HasForeignKey<ChatTab>(ct => ct.userId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 
