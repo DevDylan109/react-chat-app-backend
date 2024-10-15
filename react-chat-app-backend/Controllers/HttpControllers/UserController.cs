@@ -20,22 +20,19 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("GetUser/{userId}")]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUser(string userId)
     {
-        var result = await _userService.GetUser(userId);
+        var user = await _userService.GetUser(userId);
+        user.password = "";
         
-        return result switch
+        return user switch
         {
             null => NotFound(),
-            not null => Ok(result)
+            not null => Ok(user)
         };
     }
     
     [HttpPost("LoginUser/{userId}/{password}")]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> LoginUser(string userId, string password)
     {
         var user = await _userService.GetUser(userId);
@@ -43,8 +40,6 @@ public class UserController : ControllerBase
     }
     
     [HttpPost("CreateUser")]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> CreateUser(User user)
     {
         var result = await _userService.CreateUser(user);
@@ -57,8 +52,6 @@ public class UserController : ControllerBase
     }
     
     [HttpDelete("DeleteUser/{userId}")]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> DeleteUser(string userId)
     {
         var result = await _userService.DeleteUser(userId);
@@ -71,8 +64,6 @@ public class UserController : ControllerBase
     }
 
     [HttpPut("ChangeUsername/{userId}/{username}")]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ChangeUsername(string userId, string username)
     {
         var result = await _userService.ChangeUserName(userId, username);
@@ -85,8 +76,6 @@ public class UserController : ControllerBase
     }
     
     [HttpPut("ChangeProfilePicture/{userId}/{imageURL}")]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ChangeProfilePicture(string userId, string imageURL)
     {
         imageURL = Uri.UnescapeDataString(imageURL);
@@ -100,8 +89,6 @@ public class UserController : ControllerBase
     }
     
     [HttpPost("CheckUsernameExists/{username}")]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> CheckUsernameExists(string username)
     {
         var result = await _userService.CheckUsernameExists(username);

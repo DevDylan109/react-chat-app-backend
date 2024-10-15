@@ -20,8 +20,6 @@ public class FriendController : ControllerBase
     }
 
     [HttpPost("SendFriendRequest")]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> StoreAndForwardFriendRequest(FriendRequest friendRequest)
     {
         var result = await _friendShipService.StoreAndForwardFriendRequest(friendRequest);
@@ -36,9 +34,6 @@ public class FriendController : ControllerBase
     }
     
     [HttpPut("AcceptFriendRequest")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AcceptFriendRequest(FriendRequest friendRequest)
     {
         var result = await _friendShipService.AcceptFriendRequest(friendRequest);
@@ -52,9 +47,6 @@ public class FriendController : ControllerBase
     }
 
     [HttpDelete("DeclineFriendRequest")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeclineFriendRequest(FriendRequest friendRequest)
     {
         var result = await _friendShipService.DeclineFriendRequest(friendRequest);
@@ -68,9 +60,6 @@ public class FriendController : ControllerBase
     }
     
     [HttpDelete("RemoveFriend/{userId1}/{userId2}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RemoveFriendOfUser(string userId1, string userId2)
     {
         var result = await _friendShipService.RemoveFriend(userId1, userId2);
@@ -84,9 +73,6 @@ public class FriendController : ControllerBase
     }
     
     [HttpGet("FetchFriends/{userId}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> FetchFriends(string userId)
     {
         var result = await _friendShipService.GetFriendsOfUser(userId);
@@ -99,9 +85,6 @@ public class FriendController : ControllerBase
     }
 
     [HttpGet("FetchIncomingFriendRequests/{userId}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> FetchIncomingFriendRequests(string userId)
     {
         var result = await _friendShipService.GetIncomingFriendRequestsOfUser(userId);
@@ -114,9 +97,6 @@ public class FriendController : ControllerBase
     }
     
     [HttpGet("FetchOutgoingFriendRequests/{userId}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> FetchOutgoingFriendRequests(string userId)
     {
         var result = await _friendShipService.GetOutgoingFriendRequestsOfUser(userId);
