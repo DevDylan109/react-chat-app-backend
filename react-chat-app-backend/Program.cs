@@ -1,3 +1,5 @@
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using react_chat_app_backend.Context;
 using react_chat_app_backend.Controllers.WSControllers;
@@ -27,6 +29,19 @@ builder.Services.AddScoped<IFriendShipService, FriendShipService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddFixedWindowLimiter("fixed", rateLimitOptions =>
+    {
+        rateLimitOptions.PermitLimit = 10;
+        rateLimitOptions.Window = TimeSpan.FromMinutes(5);
+        rateLimitOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        rateLimitOptions.QueueLimit = 0;
+    });
+});
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin",
@@ -50,6 +65,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+app.UseRateLimiter();
 
 // Use CORS policy
 app.UseCors("AllowSpecificOrigin");

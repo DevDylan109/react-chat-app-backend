@@ -1,5 +1,6 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using react_chat_app_backend.DTOs;
 using react_chat_app_backend.Models;
 using react_chat_app_backend.Services;
@@ -36,6 +37,7 @@ public class UserController : ControllerBase
     }
     
     [HttpPost("LoginUser/{UserId}/{password}")]
+    [EnableRateLimiting("fixed")]
     public async Task<IActionResult> LoginUser(string userId, string password)
     {
         var user = await _userService.GetUser(userId);
