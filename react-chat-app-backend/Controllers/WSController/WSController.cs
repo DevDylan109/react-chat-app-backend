@@ -12,28 +12,35 @@ public class WSController : ControllerBase
 {
     private IWSManager _wsManager;
     private IWSMessageService _wsMessageService;
+    private ITokenService _tokenService;
     
-    public WSController(IWSMessageService wsMessageService, IWSManager wsManager)
+    public WSController(IWSMessageService wsMessageService, IWSManager wsManager, ITokenService tokenService)
     {
         _wsManager = wsManager;
         _wsMessageService = wsMessageService;
+        _tokenService = tokenService;
     }
 
     [Route("/ws")]
     public async Task Get()
     {
-        if (HttpContext.WebSockets.IsWebSocketRequest)
-        {
-            string userId = HttpContext.Request.Query["userID"];
-            if (!string.IsNullOrEmpty(userId))
-            {
+        string userId = HttpContext.Request.Query["userID"];
+        string token = HttpContext.Request.Query["token"];
+        
+        Console.WriteLine(HttpContext.Request.QueryString);
+        Console.WriteLine(userId);
+        Console.WriteLine(token);
+        
+        if (HttpContext.WebSockets.IsWebSocketRequest 
+            && _tokenService.IsTokenValid(userId, token)) {
+            
+            if (!string.IsNullOrEmpty(userId)) {
                 using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
                 _wsManager.Add(userId, webSocket);
                 await Listener(webSocket);
             }
-        }
-        else
-        {
+        } else {
+            
             HttpContext.Response.StatusCode = 400;
         }
     }
