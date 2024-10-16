@@ -6,18 +6,18 @@ namespace react_chat_app_backend.Controllers.HttpControllers;
 
 public class ChatTabController
 {
-    // [HttpGet("GetChatTab/{userId}")]
-    // public async Task<IActionResult> GetChatTab(string userId)
+    // [HttpGet("GetChatTab/{UserId}")]
+    // public async Task<IActionResult> GetChatTab(string UserId)
     // {
     //     
     // }
     //
     // [HttpPost("SaveChatTab")]
-    // public async Task<IActionResult> SaveChatTab(string userId, int unreadMessageCount, bool isHighlighted)
+    // public async Task<IActionResult> SaveChatTab(string UserId, int unreadMessageCount, bool isHighlighted)
     // {
     // }
     //
-    // [HttpDelete("DeleteChatTab/{userId}")]
+    // [HttpDelete("DeleteChatTab/{UserId}")]
     // public async Task<IActionResult> DeleteChatTab()
     // {
     //     

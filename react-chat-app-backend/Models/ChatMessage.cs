@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,8 @@ public class ChatMessage
     public string name { get; set; }
     public string text { get; set; }
     public string? photoURL { get; set; }
+
+    [NotMapped] public string token { get; set; }
 
     public ChatMessage()
     {

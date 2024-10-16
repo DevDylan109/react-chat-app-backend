@@ -5,17 +5,17 @@
 //
 // public class ChatTabService : IChatTabService
 // {
-//     public Task<ChatTab> GetChatTab(string userId)
+//     public Task<ChatTab> GetChatTab(string UserId)
 //     {
 //         throw new NotImplementedException();
 //     }
 //
-//     public Task SaveChatTab(string userId, int unreadMessageCount, bool isHighlighted)
+//     public Task SaveChatTab(string UserId, int unreadMessageCount, bool isHighlighted)
 //     {
 //         throw new NotImplementedException();
 //     }
 //
-//     public Task DeleteChatTab(string userId)
+//     public Task DeleteChatTab(string UserId)
 //     {
 //         throw new NotImplementedException();
 //     }

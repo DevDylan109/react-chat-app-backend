@@ -1,5 +1,6 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
+using react_chat_app_backend.DTOs;
 using react_chat_app_backend.Models;
 using react_chat_app_backend.Services;
 using react_chat_app_backend.Services.Interfaces;
@@ -12,14 +13,16 @@ public class UserController : ControllerBase
 {
     private readonly ILogger<UserController> _logger;
     private readonly IUserService _userService;
+    private readonly ITokenService _tokenService;
 
-    public UserController(ILogger<UserController> logger, IUserService userService)
+    public UserController(ILogger<UserController> logger, IUserService userService, ITokenService tokenService)
     {
         _logger = logger;
         _userService = userService;
+        _tokenService = tokenService;
     }
 
-    [HttpGet("GetUser/{userId}")]
+    [HttpGet("GetUser/{UserId}")]
     public async Task<IActionResult> GetUser(string userId)
     {
         var user = await _userService.GetUser(userId);
@@ -32,55 +35,66 @@ public class UserController : ControllerBase
         };
     }
     
-    [HttpPost("LoginUser/{userId}/{password}")]
+    [HttpPost("LoginUser/{UserId}/{password}")]
     public async Task<IActionResult> LoginUser(string userId, string password)
     {
         var user = await _userService.GetUser(userId);
-        return user.password == password ? Ok() : BadRequest(); 
+        var token = _tokenService.CreateAndStore(userId, 120);
+        return user.password == password ? Ok(token) : BadRequest(); 
     }
     
     [HttpPost("CreateUser")]
-    public async Task<IActionResult> CreateUser(User user)
+    public async Task<IActionResult> CreateUser(UserRegistrationDTO user)
     {
         var result = await _userService.CreateUser(user);
-
+        var token = _tokenService.CreateAndStore(user.Username, 120); // username is userId 
         return result switch
         {
             HttpStatusCode.Conflict => Conflict(),
-            HttpStatusCode.Created => CreatedAtAction(nameof(CreateUser), user)
+            HttpStatusCode.Created => Ok(token)
         };
     }
     
-    [HttpDelete("DeleteUser/{userId}")]
-    public async Task<IActionResult> DeleteUser(string userId)
+    [HttpDelete("DeleteUser/{UserId}/{token}")]
+    public async Task<IActionResult> DeleteUser(string userId, string token)
     {
-        var result = await _userService.DeleteUser(userId);
-
-        return result switch
-        {
-            HttpStatusCode.NotFound => NotFound(),
-            HttpStatusCode.OK => Ok()
-        };
-    }
-
-    [HttpPut("ChangeUsername/{userId}/{username}")]
-    public async Task<IActionResult> ChangeUsername(string userId, string username)
-    {
-        var result = await _userService.ChangeUserName(userId, username);
-
-        return result switch
-        {
-            HttpStatusCode.NotFound => NotFound(),
-            HttpStatusCode.OK => Ok()
-        };
-    }
-    
-    [HttpPut("ChangeProfilePicture/{userId}/{imageURL}")]
-    public async Task<IActionResult> ChangeProfilePicture(string userId, string imageURL)
-    {
-        imageURL = Uri.UnescapeDataString(imageURL);
-        var result = await _userService.ChangeProfilePicture(userId, imageURL);
+        if (_tokenService.IsTokenValid(userId, token) == false) {
+            return BadRequest("Token not valid");
+        }
         
+        var result = await _userService.DeleteUser(userId);
+        return result switch
+        {
+            HttpStatusCode.NotFound => NotFound(),
+            HttpStatusCode.OK => Ok()
+        };
+    }
+
+    [HttpPut("ChangeUsername/{UserId}/{username}/{token}")]
+    public async Task<IActionResult> ChangeUsername(string userId, string username, string token)
+    {
+        if (_tokenService.IsTokenValid(userId, token) == false) {
+            return BadRequest("Token not valid");
+        }
+        
+        var result = await _userService.ChangeUserName(userId, username);
+        return result switch
+        {
+            HttpStatusCode.NotFound => NotFound(),
+            HttpStatusCode.OK => Ok()
+        };
+    }
+    
+    [HttpPut("ChangeProfilePicture/{UserId}/{imageURL}/{token}")]
+    public async Task<IActionResult> ChangeProfilePicture(string userId, string imageURL, string token)
+    {
+        if (_tokenService.IsTokenValid(userId, token) == false) {
+            return BadRequest("Token not valid");
+        }
+        
+        imageURL = Uri.UnescapeDataString(imageURL);
+        
+        var result = await _userService.ChangeProfilePicture(userId, imageURL);
         return result switch
         {
             HttpStatusCode.NotFound => NotFound(),
@@ -92,7 +106,6 @@ public class UserController : ControllerBase
     public async Task<IActionResult> CheckUsernameExists(string username)
     {
         var result = await _userService.CheckUsernameExists(username);
-        
         return result switch
         {
             HttpStatusCode.NotFound => NotFound(),

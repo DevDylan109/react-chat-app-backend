@@ -14,8 +14,11 @@ public class User
 
     public List<UserFriendShip>? UserFriendShips { get; set; }
 
-    public User()
+    public User(string userId, string password, string name)
     {
+        this.userId = userId;
+        this.password = password;
+        this.name = name;
         joinDate = DateTime.UtcNow;
     }
 }

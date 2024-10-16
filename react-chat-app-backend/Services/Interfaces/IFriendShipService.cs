@@ -8,9 +8,9 @@ public interface IFriendShipService
      Task<List<User>> GetFriendsOfUser(string userId);
      Task<List<User>> GetIncomingFriendRequestsOfUser(string userId);
      Task<List<User>> GetOutgoingFriendRequestsOfUser(string userId);
-     Task<HttpStatusCode> StoreAndForwardFriendRequest(FriendRequest friendRequest);
-     Task<HttpStatusCode> AcceptFriendRequest(FriendRequest friendRequest);
-     Task<HttpStatusCode> DeclineFriendRequest(FriendRequest friendRequest);
+     Task<HttpStatusCode> StoreAndForwardFriendRequest(string initiatorId, string acceptorId);
+     Task<HttpStatusCode> AcceptFriendRequest(string initiatorId, string acceptorId);
+     Task<HttpStatusCode> DeclineFriendRequest(string initiatorId, string acceptorId);
      Task<HttpStatusCode> RemoveFriend(string userId1, string userId2);
      Task<UserFriendShip> StoreFriendRequest(string senderId, string receiverId);
      Task<bool> CheckFriendshipExists(string userId1, string userId2);

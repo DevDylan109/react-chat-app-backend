@@ -34,32 +34,26 @@ public class FriendShipService : IFriendShipService
         return await _friendShipRepository.GetOutgoingFriendRequestsOfUser(userId);
     }
 
-    public async Task<HttpStatusCode> StoreAndForwardFriendRequest(FriendRequest friendRequest)
+    public async Task<HttpStatusCode> StoreAndForwardFriendRequest(string initiatorId, string acceptorId)
     {
-        var senderId = friendRequest.initiatorId;
-        var receiverId = friendRequest.acceptorId;
-
-        if (receiverId == senderId)
+        if (acceptorId == initiatorId)
             return HttpStatusCode.BadRequest;
         
-        if (await _userService.CheckUserExists(receiverId) == false)
+        if (await _userService.CheckUserExists(acceptorId) == false)
             return HttpStatusCode.NotFound;
 
-        if (await CheckFriendshipExists(senderId, receiverId)) 
+        if (await CheckFriendshipExists(initiatorId, acceptorId)) 
             return HttpStatusCode.Conflict;
         
-        await StoreFriendRequest(senderId, receiverId);
-        var json = JsonSerializer.Serialize(friendRequest);
-        await _wsMessageService.SendToUser(receiverId, json);
+        await StoreFriendRequest(initiatorId, acceptorId);
+        var json = JsonSerializer.Serialize(new FriendRequest(initiatorId, acceptorId));
+        await _wsMessageService.SendToUser(acceptorId, json);
 
         return HttpStatusCode.Created;
     }
     
-    public async Task<HttpStatusCode> AcceptFriendRequest(FriendRequest friendRequest)
+    public async Task<HttpStatusCode> AcceptFriendRequest(string initiatorId, string acceptorId)
     {
-        var initiatorId = friendRequest.initiatorId;
-        var acceptorId = friendRequest.acceptorId;
-
         if (await CheckFriendshipExists(initiatorId, acceptorId) == false)
             return HttpStatusCode.NotFound;
 
@@ -82,10 +76,8 @@ public class FriendShipService : IFriendShipService
         return HttpStatusCode.OK;
     }
     
-    public async Task<HttpStatusCode> DeclineFriendRequest(FriendRequest friendRequest)
+    public async Task<HttpStatusCode> DeclineFriendRequest(string initiatorId, string acceptorId)
     {
-        var initiatorId = friendRequest.initiatorId;
-        var acceptorId = friendRequest.acceptorId;
         var statusCode = HttpStatusCode.OK;
         
         // lookup friend request in database
@@ -104,7 +96,6 @@ public class FriendShipService : IFriendShipService
     
     public async Task<HttpStatusCode> RemoveFriend(string userId1, string userId2)
     {
-
         if (await CheckFriendshipExists(userId1, userId2) == false)
             return HttpStatusCode.NotFound;
         

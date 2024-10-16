@@ -13,15 +13,15 @@ namespace react_chat_app_backend.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_ChatTabs_userId",
                 table: "ChatTabs",
-                column: "userId",
+                column: "UserId",
                 unique: true);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_ChatTabs_Users_userId",
                 table: "ChatTabs",
-                column: "userId",
+                column: "UserId",
                 principalTable: "Users",
-                principalColumn: "userId",
+                principalColumn: "UserId",
                 onDelete: ReferentialAction.Cascade);
         }
 

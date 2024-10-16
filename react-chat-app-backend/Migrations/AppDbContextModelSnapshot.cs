@@ -66,13 +66,13 @@ namespace react_chat_app_backend.Migrations
                     b.Property<int>("unreadMessageCount")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("userId")
+                    b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("id");
 
-                    b.HasIndex("userId")
+                    b.HasIndex("UserId")
                         .IsUnique();
 
                     b.ToTable("ChatTabs");
@@ -80,7 +80,7 @@ namespace react_chat_app_backend.Migrations
 
             modelBuilder.Entity("react_chat_app_backend.Models.User", b =>
                 {
-                    b.Property<string>("userId")
+                    b.Property<string>("UserId")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("joinDate")
@@ -97,7 +97,7 @@ namespace react_chat_app_backend.Migrations
                     b.Property<string>("photoURL")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("userId");
+                    b.HasKey("UserId");
 
                     b.ToTable("Users");
                 });
@@ -139,7 +139,7 @@ namespace react_chat_app_backend.Migrations
                 {
                     b.HasOne("react_chat_app_backend.Models.User", null)
                         .WithOne()
-                        .HasForeignKey("react_chat_app_backend.Models.ChatTab", "userId")
+                        .HasForeignKey("react_chat_app_backend.Models.ChatTab", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

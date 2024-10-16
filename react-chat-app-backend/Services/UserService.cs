@@ -1,4 +1,5 @@
 using System.Net;
+using react_chat_app_backend.DTOs;
 using react_chat_app_backend.Models;
 using react_chat_app_backend.Repositories.Interfaces;
 using react_chat_app_backend.Services.Interfaces;
@@ -19,15 +20,14 @@ public class UserService : IUserService
         return await _userRepository.GetUser(userId);
     }
 
-    public async Task<HttpStatusCode> CreateUser(User user)
+    public async Task<HttpStatusCode> CreateUser(UserRegistrationDTO user)
     {
-        var userId = user.userId;
-        
-        if (await CheckUserExists(userId)) {
+        if (await CheckUserExists(user.Username)) {
             return HttpStatusCode.Conflict;
         }
 
-        await _userRepository.CreateUser(user);
+        var newUser = new User(user.Username, user.Password, user.DisplayName);
+        await _userRepository.CreateUser(newUser);
         return HttpStatusCode.Created;
     }
     

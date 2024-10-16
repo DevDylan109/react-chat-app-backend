@@ -11,7 +11,7 @@ public class WSManager : IWSManager
         _connections.Add(new WSClient 
         {
             webSocket = webSocket,
-            userId = userId
+            userId = userId,
         });
     }
 

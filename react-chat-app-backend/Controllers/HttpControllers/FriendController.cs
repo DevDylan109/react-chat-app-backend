@@ -12,18 +12,25 @@ public class FriendController : ControllerBase
 {
     private readonly ILogger<UserController> _logger;
     private readonly IFriendShipService _friendShipService;
+    private readonly ITokenService _tokenService;
     
-    public FriendController(ILogger<UserController> logger, IFriendShipService friendShipService)
+    public FriendController(ILogger<UserController> logger, IFriendShipService friendShipService, ITokenService tokenService)
     {
         _logger = logger;
         _friendShipService = friendShipService;
+        _tokenService = tokenService;
     }
 
-    [HttpPost("SendFriendRequest")]
-    public async Task<IActionResult> StoreAndForwardFriendRequest(FriendRequest friendRequest)
+    [HttpPost("SendFriendRequest/{initiatorId}/{acceptorId}/{token}")]
+    public async Task<IActionResult> StoreAndForwardFriendRequest(string initiatorId, string acceptorId, string token)
     {
-        var result = await _friendShipService.StoreAndForwardFriendRequest(friendRequest);
-
+        if (_tokenService.IsTokenValid(initiatorId, token) == false) {
+            return BadRequest("invalid token");
+        }
+        
+        var result = await _friendShipService
+            .StoreAndForwardFriendRequest(initiatorId, acceptorId);
+        
         return result switch
         {
             HttpStatusCode.BadRequest => BadRequest(),
@@ -33,11 +40,18 @@ public class FriendController : ControllerBase
         };
     }
     
-    [HttpPut("AcceptFriendRequest")]
-    public async Task<IActionResult> AcceptFriendRequest(FriendRequest friendRequest)
+    [HttpPut("AcceptFriendRequest/{initiatorId}/{acceptorId}/{token}")]
+    public async Task<IActionResult> AcceptFriendRequest(string initiatorId, string acceptorId, string token)
     {
-        var result = await _friendShipService.AcceptFriendRequest(friendRequest);
-
+        if (_tokenService.IsTokenValid(initiatorId, token) == false) {
+            if (_tokenService.IsTokenValid(acceptorId, token) == false) {
+                return BadRequest("invalid token");   
+            }
+        }
+        
+        var result = await _friendShipService
+            .AcceptFriendRequest(initiatorId, acceptorId);
+        
         return result switch
         {
             HttpStatusCode.OK => Ok(),
@@ -46,10 +60,17 @@ public class FriendController : ControllerBase
         };
     }
 
-    [HttpDelete("DeclineFriendRequest")]
-    public async Task<IActionResult> DeclineFriendRequest(FriendRequest friendRequest)
+    [HttpDelete("DeclineFriendRequest/{initiatorId}/{acceptorId}/{token}")]
+    public async Task<IActionResult> DeclineFriendRequest(string initiatorId, string acceptorId, string token)
     {
-        var result = await _friendShipService.DeclineFriendRequest(friendRequest);
+        if (_tokenService.IsTokenValid(initiatorId, token) == false) {
+            if (_tokenService.IsTokenValid(acceptorId, token) == false) {
+                return BadRequest("invalid token");   
+            }
+        }
+        
+        var result = await _friendShipService
+            .DeclineFriendRequest(initiatorId, acceptorId);
         
         return result switch
         {
@@ -59,11 +80,14 @@ public class FriendController : ControllerBase
         };
     }
     
-    [HttpDelete("RemoveFriend/{userId1}/{userId2}")]
-    public async Task<IActionResult> RemoveFriendOfUser(string userId1, string userId2)
+    [HttpDelete("RemoveFriend/{userId1}/{userId2}/{token}")]
+    public async Task<IActionResult> RemoveFriendOfUser(string userId1, string userId2, string token)
     {
-        var result = await _friendShipService.RemoveFriend(userId1, userId2);
+        if (_tokenService.IsTokenValid(userId1, token) == false) {
+            return BadRequest("invalid token");
+        }
         
+        var result = await _friendShipService.RemoveFriend(userId1, userId2);
         return result switch
         {
             HttpStatusCode.OK => Ok(),
@@ -72,11 +96,10 @@ public class FriendController : ControllerBase
         };
     }
     
-    [HttpGet("FetchFriends/{userId}")]
+    [HttpGet("FetchFriends/{UserId}")]
     public async Task<IActionResult> FetchFriends(string userId)
     {
         var result = await _friendShipService.GetFriendsOfUser(userId);
-        
         return result switch
         {
             not null => Ok(result),
@@ -84,11 +107,10 @@ public class FriendController : ControllerBase
         };
     }
 
-    [HttpGet("FetchIncomingFriendRequests/{userId}")]
+    [HttpGet("FetchIncomingFriendRequests/{UserId}")]
     public async Task<IActionResult> FetchIncomingFriendRequests(string userId)
     {
         var result = await _friendShipService.GetIncomingFriendRequestsOfUser(userId);
-
         return result switch
         {
             not null => Ok(result),
@@ -96,11 +118,10 @@ public class FriendController : ControllerBase
         };
     }
     
-    [HttpGet("FetchOutgoingFriendRequests/{userId}")]
+    [HttpGet("FetchOutgoingFriendRequests/{UserId}")]
     public async Task<IActionResult> FetchOutgoingFriendRequests(string userId)
     {
         var result = await _friendShipService.GetOutgoingFriendRequestsOfUser(userId);
-
         return result switch
         {
             not null => Ok(result),

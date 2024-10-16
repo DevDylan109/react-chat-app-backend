@@ -54,10 +54,16 @@ public class FriendShipRepository : IFriendShipRepository
 
     public async Task<UserFriendShip?> GetFriendShip(string userId1, string userId2)
     {
-        return await _appDbContext.UserFriendShips.FirstOrDefaultAsync(ur =>
+        var friendship = await _appDbContext.UserFriendShips.FirstOrDefaultAsync(ur =>
             ur.UserId == userId1 && ur.RelatedUserId == userId2 ||
             ur.UserId == userId2 && ur.RelatedUserId == userId1
         );
+        
+        if (friendship != null) {
+            await _appDbContext.Entry(friendship).ReloadAsync();
+        }
+
+        return friendship;
     }
 
     public async Task SetFriendShipStatus(UserFriendShip friendShip, bool pendingStatus)

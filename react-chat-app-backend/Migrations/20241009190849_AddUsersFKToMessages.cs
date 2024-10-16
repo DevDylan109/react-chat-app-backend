@@ -25,7 +25,7 @@ namespace react_chat_app_backend.Migrations
                 table: "Messages",
                 column: "receiverId",
                 principalTable: "Users",
-                principalColumn: "userId",
+                principalColumn: "UserId",
                 onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
@@ -33,7 +33,7 @@ namespace react_chat_app_backend.Migrations
                 table: "Messages",
                 column: "senderId",
                 principalTable: "Users",
-                principalColumn: "userId",
+                principalColumn: "UserId",
                 onDelete: ReferentialAction.Cascade);
         }
 

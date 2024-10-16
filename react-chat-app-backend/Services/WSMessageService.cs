@@ -15,14 +15,21 @@ public class WSMessageService : IWSMessageService
     private WSHelpers _wsHelpers;
     private IFriendShipRepository _friendShipRepository;
     private IUserRepository _userRepository;
+    private ITokenService _tokenService;
 
-    public WSMessageService(IWSMessageRepository wsMessageRepository, IFriendShipRepository friendShipRepository, IUserRepository userRepository, IWSManager wsManager)
+    public WSMessageService(
+        IWSMessageRepository wsMessageRepository,
+        IFriendShipRepository friendShipRepository,
+        IUserRepository userRepository,
+        IWSManager wsManager,
+        ITokenService tokenService)
     {
         _wsMessageRepository = wsMessageRepository;
         _wsManager = wsManager;
         _wsHelpers = new WSHelpers();
         _friendShipRepository = friendShipRepository;
         _userRepository = userRepository;
+        _tokenService = tokenService;
     }
 
     public async Task Handle(WebSocket webSocket, byte[] buffer)
@@ -49,9 +56,13 @@ public class WSMessageService : IWSMessageService
             var userId2 = request.userId2;
             var skip = request.skip;
             var take = request.take;
-
             List<ChatMessage> messages;
-            
+
+            // if (_tokenService.IsTokenValid(userId1, token))
+            // {
+            //     
+            // }
+            //
             if (skip == 0 && take == 0) {
                 messages = await _wsMessageRepository.GetAllMessages(userId1, userId2);   
             } else {
@@ -76,13 +87,15 @@ public class WSMessageService : IWSMessageService
             var message = _wsHelpers.GetModelData<ChatMessage>(buffer);
             var senderId = message.senderId;
             var receiverId = message.receiverId;
+            var token = message.token;
             var user = await _userRepository.GetUser(senderId);
             message.name = user.name;
             message.photoURL = user.photoURL;
         
             
             if (await CheckFriendshipExists(senderId, receiverId)
-                && await CheckFriendshipPending(senderId, receiverId) == false)
+                && await CheckFriendshipPending(senderId, receiverId) == false
+                 && _tokenService.IsTokenValid(senderId, token))
             {
                 await Store(message);
                 await Forward(message);   
@@ -146,6 +159,12 @@ public class WSMessageService : IWSMessageService
         );
     }
 
+    // private bool CheckUserImpersonation(string userId, string token)
+    // {
+    //     Console.WriteLine(token);
+    //     return _tokenService.IsTokenValid(userId, token);
+    // }
+
     // TODO: circular dependency for FriendShipService and WSMessageService
     public async Task<bool> CheckFriendshipExists(string userId1, string userId2)
     {
@@ -156,6 +175,8 @@ public class WSMessageService : IWSMessageService
     public async Task<bool> CheckFriendshipPending(string userId1, string userId2)
     {
         var friendship = await _friendShipRepository.GetFriendShip(userId1, userId2);
+        Console.WriteLine(friendship?.isPending);
+        Console.WriteLine(friendship != null && friendship.isPending);
         return friendship != null && friendship.isPending;
     }
     

@@ -58,13 +58,13 @@ namespace react_chat_app_backend.Migrations
                         name: "FK_UserFriendShips_Users_RelatedUserId",
                         column: x => x.RelatedUserId,
                         principalTable: "Users",
-                        principalColumn: "userId",
+                        principalColumn: "UserId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_UserFriendShips_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "userId",
+                        principalColumn: "UserId",
                         onDelete: ReferentialAction.Cascade);
                 });
 

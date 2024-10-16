@@ -16,6 +16,7 @@ builder.Services.AddDbContext<AppDbContext>(optionsBuilder =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddSingleton<IWSManager, WSManager>();
+builder.Services.AddSingleton<ITokenService, TokenService>();
 
 builder.Services.AddScoped<IWSMessageRepository, WSMessageRepository>();
 builder.Services.AddScoped<IWSMessageService, WSMessageService>();
