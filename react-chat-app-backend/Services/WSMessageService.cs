@@ -83,6 +83,7 @@ public class WSMessageService : IWSMessageService
         var senderId = message.senderId;
         var receiverId = message.receiverId;
         var token = message.token;
+        message.token = ""; // recipient user can steal the token
         var user = await _userRepository.GetUser(senderId);
         message.name = user.name;
         message.photoURL = user.photoURL;

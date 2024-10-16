@@ -91,11 +91,9 @@ public class FriendShipService : IFriendShipService
             statusCode = HttpStatusCode.Conflict;
         
         await _friendShipRepository.RemoveFriendShip(friendship);
-        
         var json = JsonSerializer.Serialize(
             new { friendId = acceptorId, type = "declinedFriendRequest" }
         );
-        
         await _wsMessageService.SendToUser(initiatorId, json);
         
         return statusCode;
@@ -107,6 +105,11 @@ public class FriendShipService : IFriendShipService
             return HttpStatusCode.NotFound;
         
         await _friendShipRepository.RemoveFriendShip(userId1, userId2);
+        var json = JsonSerializer.Serialize(
+            new { userId = userId1, type = "removedFriend" }
+        );
+        await _wsMessageService.SendToUser(userId2, json);
+        
         return HttpStatusCode.OK;
     }
     
