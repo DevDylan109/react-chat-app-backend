@@ -68,7 +68,7 @@ public class FriendShipService : IFriendShipService
 
         // let the user who sent out the request know that it has been accepted
         var json = JsonSerializer.Serialize(
-            new { friendId = acceptorId, type = "acceptedFriendRequest" } //type = WSMessageType.notification
+            new { friendId = acceptorId, type = "acceptedFriendRequest" }
         );
         
         await _wsMessageService.SendToUser(initiatorId, json);
@@ -91,6 +91,13 @@ public class FriendShipService : IFriendShipService
             statusCode = HttpStatusCode.Conflict;
         
         await _friendShipRepository.RemoveFriendShip(friendship);
+        
+        var json = JsonSerializer.Serialize(
+            new { friendId = acceptorId, type = "declinedFriendRequest" }
+        );
+        
+        await _wsMessageService.SendToUser(initiatorId, json);
+        
         return statusCode;
     }
     
