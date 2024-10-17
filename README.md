@@ -18,7 +18,7 @@ I created this project to learn and explore technologies in my spare time.
 
 ## Front-end
 
-[[https://github.com/dylanr19/react-chat-app](https://github.com/dylanr19/react-chat-app)](https://github.com/dylanr19/react-chat-app)
+https://github.com/dylanr19/react-chat-app
 
 
 ### Built With
