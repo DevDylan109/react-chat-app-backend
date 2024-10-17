@@ -9,11 +9,11 @@ using react_chat_app_backend.Services;
 using react_chat_app_backend.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
-var connectionString = builder.Configuration["ConnectionString"];
+// var connectionString = builder.Configuration["ConnectionString"];
 
 // Add services to the container
 builder.Services.AddDbContext<AppDbContext>(optionsBuilder => 
-    optionsBuilder.UseSqlite(connectionString));
+    optionsBuilder.UseSqlite("Data Source=Application.db"));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
