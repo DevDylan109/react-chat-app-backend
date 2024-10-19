@@ -46,7 +46,7 @@ public class FriendShipService : IFriendShipService
             return HttpStatusCode.Conflict;
         
         await StoreFriendRequest(initiatorId, acceptorId);
-        var json = JsonSerializer.Serialize(new FriendRequest(initiatorId, acceptorId));
+        var json = JsonSerializer.Serialize(new { initiatorId, acceptorId, type = "friendRequestReceived" });
         await _wsMessageService.SendToUser(acceptorId, json);
 
         return HttpStatusCode.Created;
@@ -68,7 +68,7 @@ public class FriendShipService : IFriendShipService
 
         // let the user who sent out the request know that it has been accepted
         var json = JsonSerializer.Serialize(
-            new { friendId = acceptorId, type = "acceptedFriendRequest" }
+            new { acceptorId, type = "friendRequestResponse" }
         );
         
         await _wsMessageService.SendToUser(initiatorId, json);
@@ -92,7 +92,7 @@ public class FriendShipService : IFriendShipService
         
         await _friendShipRepository.RemoveFriendShip(friendship);
         var json = JsonSerializer.Serialize(
-            new { friendId = acceptorId, type = "declinedFriendRequest" }
+            new { declinerId = acceptorId, type = "friendRequestResponse" }
         );
         await _wsMessageService.SendToUser(initiatorId, json);
         
