@@ -7,6 +7,7 @@ namespace react_chat_app_backend.Services.Interfaces;
 public interface IUserService
 {
      Task<User> GetUser(string userId);
+     Task<HttpStatusCode> GetOnlineStatus(string userId);
      Task<HttpStatusCode> CreateUser(UserRegistrationDTO user); 
      Task<HttpStatusCode> DeleteUser(string userId); 
      Task<bool> CheckUserExists(string userId);

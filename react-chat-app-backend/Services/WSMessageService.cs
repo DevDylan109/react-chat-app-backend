@@ -170,11 +170,17 @@ public class WSMessageService : IWSMessageService
         );
     }
 
-    // private bool CheckUserImpersonation(string userId, string token)
-    // {
-    //     Console.WriteLine(token);
-    //     return _tokenService.IsTokenValid(userId, token);
-    // }
+    public async Task BroadcastOnlineStatus(string userId, string status)
+    { 
+        var wsClients = _wsManager.All();
+        var payload = new { userId, status, type = "friendStatus" };
+        var buffer = _wsHelpers.ToJsonByteArray(payload);
+
+        foreach (var wsClient in wsClients)
+        {
+            await SendMessage(wsClient.userId, buffer);
+        }
+    }
 
     // TODO: circular dependency for FriendShipService and WSMessageService
     public async Task<bool> CheckFriendshipExists(string userId1, string userId2)

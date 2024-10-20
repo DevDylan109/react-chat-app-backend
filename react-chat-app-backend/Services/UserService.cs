@@ -1,4 +1,6 @@
 using System.Net;
+using System.Net.WebSockets;
+using react_chat_app_backend.Controllers.WSControllers;
 using react_chat_app_backend.DTOs;
 using react_chat_app_backend.Models;
 using react_chat_app_backend.Repositories.Interfaces;
@@ -9,10 +11,12 @@ namespace react_chat_app_backend.Services;
 public class UserService : IUserService
 {
     private IUserRepository _userRepository;
+    private IWSManager _wsManager;
     
-    public UserService(IUserRepository userRepository)
+    public UserService(IUserRepository userRepository, IWSManager wsManager)
     {
         _userRepository = userRepository;
+        _wsManager = wsManager;
     }
 
     public async Task<User> GetUser(string userId)
@@ -80,6 +84,17 @@ public class UserService : IUserService
 
         await _userRepository.SetImageURL(userId, imageURL);
         return HttpStatusCode.OK;
+    }
+    
+    public async Task<HttpStatusCode> GetOnlineStatus(string userId)
+    {
+        var wsClient = _wsManager.Get(userId);
+        
+        if (wsClient?.webSocket.State == WebSocketState.Open) {
+            return HttpStatusCode.OK;
+        } else {
+            return HttpStatusCode.NotFound;
+        }
     }
 
 }

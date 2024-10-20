@@ -27,16 +27,13 @@ public class WSController : ControllerBase
         string userId = HttpContext.Request.Query["userID"];
         string token = HttpContext.Request.Query["token"];
         
-        Console.WriteLine(HttpContext.Request.QueryString);
-        Console.WriteLine(userId);
-        Console.WriteLine(token);
-        
         if (HttpContext.WebSockets.IsWebSocketRequest 
             && _tokenService.IsTokenValid(userId, token)) {
             
             if (!string.IsNullOrEmpty(userId)) {
                 using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
                 _wsManager.Add(userId, webSocket);
+                await _wsMessageService.BroadcastOnlineStatus(userId, "online");
                 await Listener(webSocket);
             }
         } else {
@@ -55,6 +52,8 @@ public class WSController : ControllerBase
             
             if (receiveResult.CloseStatus.HasValue)
             {
+                var client = _wsManager.Get(webSocket);
+                await _wsMessageService.BroadcastOnlineStatus(client.userId, "offline");
                 _wsManager.Remove(webSocket);
                 
                 await webSocket.CloseAsync(

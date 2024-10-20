@@ -36,8 +36,8 @@ public class UserController : ControllerBase
         };
     }
     
+    // [EnableRateLimiting("fixed")]
     [HttpPost("LoginUser/{UserId}/{password}")]
-    [EnableRateLimiting("fixed")]
     public async Task<IActionResult> LoginUser(string userId, string password)
     {
         var user = await _userService.GetUser(userId);
@@ -112,6 +112,17 @@ public class UserController : ControllerBase
         {
             HttpStatusCode.NotFound => NotFound(),
             HttpStatusCode.OK => Ok()
+        };
+    }
+    
+    [HttpGet("FetchStatus/{UserId}")]
+    public async Task<IActionResult> FetchStatus(string userId)
+    {
+        var result = await _userService.GetOnlineStatus(userId);
+        return result switch
+        {
+            HttpStatusCode.OK => Ok(),
+            HttpStatusCode.NotFound => NotFound()
         };
     }
 
