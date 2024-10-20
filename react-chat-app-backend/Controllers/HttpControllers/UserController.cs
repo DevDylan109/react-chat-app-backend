@@ -49,7 +49,7 @@ public class UserController : ControllerBase
     public async Task<IActionResult> CreateUser(UserRegistrationDTO user)
     {
         var result = await _userService.CreateUser(user);
-        var token = _tokenService.CreateAndStore(user.Username, 120); // username is userId 
+        var token = _tokenService.CreateAndStore(user.Username, 120);
         return result switch
         {
             HttpStatusCode.Conflict => Conflict(),
