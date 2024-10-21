@@ -10,13 +10,11 @@ namespace react_chat_app_backend.Controllers.HttpControllers;
 [Route("api/[controller]")]
 public class FriendController : ControllerBase
 {
-    private readonly ILogger<UserController> _logger;
     private readonly IFriendShipService _friendShipService;
     private readonly ITokenService _tokenService;
     
-    public FriendController(ILogger<UserController> logger, IFriendShipService friendShipService, ITokenService tokenService)
+    public FriendController(IFriendShipService friendShipService, ITokenService tokenService)
     {
-        _logger = logger;
         _friendShipService = friendShipService;
         _tokenService = tokenService;
     }

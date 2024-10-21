@@ -1,7 +1,6 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using react_chat_app_backend.DTOs;
 using react_chat_app_backend.Models;
 using react_chat_app_backend.Services;
 using react_chat_app_backend.Services.Interfaces;
@@ -12,13 +11,11 @@ namespace react_chat_app_backend.Controllers.HttpControllers;
 [Route("api/[controller]")]
 public class UserController : ControllerBase
 {
-    private readonly ILogger<UserController> _logger;
     private readonly IUserService _userService;
     private readonly ITokenService _tokenService;
 
-    public UserController(ILogger<UserController> logger, IUserService userService, ITokenService tokenService)
+    public UserController(IUserService userService, ITokenService tokenService)
     {
-        _logger = logger;
         _userService = userService;
         _tokenService = tokenService;
     }
@@ -45,13 +42,15 @@ public class UserController : ControllerBase
         return user.password == password ? Ok(token) : BadRequest(); 
     }
     
-    [HttpPost("CreateUser")]
-    public async Task<IActionResult> CreateUser(UserRegistrationDTO user)
+    [HttpPost("CreateUser/{username}/{displayname}/{password}")]
+    public async Task<IActionResult> CreateUser(string username, string displayname, string password)
     {
-        var result = await _userService.CreateUser(user);
-        var token = _tokenService.CreateAndStore(user.Username, 120);
+        var result = await _userService.CreateUser(username, displayname, password);
+        var token = _tokenService.CreateAndStore(username, 120);
+        
         return result switch
         {
+            HttpStatusCode.BadRequest => BadRequest(),
             HttpStatusCode.Conflict => Conflict(),
             HttpStatusCode.Created => Ok(token)
         };

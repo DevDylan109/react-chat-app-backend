@@ -1,7 +1,8 @@
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Net.WebSockets;
+using System.Text.RegularExpressions;
 using react_chat_app_backend.Controllers.WSControllers;
-using react_chat_app_backend.DTOs;
 using react_chat_app_backend.Models;
 using react_chat_app_backend.Repositories.Interfaces;
 using react_chat_app_backend.Services.Interfaces;
@@ -23,14 +24,21 @@ public class UserService : IUserService
     {
         return await _userRepository.GetUser(userId);
     }
-
-    public async Task<HttpStatusCode> CreateUser(UserRegistrationDTO user)
+    
+    public async Task<HttpStatusCode> CreateUser(string username, string displayname, string password)
     {
-        if (await CheckUserExists(user.Username)) {
+        if (await CheckUserExists(username)) {
             return HttpStatusCode.Conflict;
         }
 
-        var newUser = new User(user.Username, user.Password, user.DisplayName);
+        if (isDisplayNameValid(displayname) == false ||
+            isUsernameValid(username) == false ||
+            isPasswordValid(password) == false)
+        {
+            return HttpStatusCode.BadRequest;
+        }
+        
+        var newUser = new User(username, password, displayname);
         await _userRepository.CreateUser(newUser);
         return HttpStatusCode.Created;
     }
@@ -95,6 +103,45 @@ public class UserService : IUserService
         } else {
             return HttpStatusCode.NotFound;
         }
+    }
+
+    public bool isDisplayNameValid(string diplayName)
+    {
+        if (string.IsNullOrEmpty(diplayName)) 
+            return false;
+        if (diplayName.Length < 6 || diplayName.Length > 30) 
+            return false;
+        if (!Regex.IsMatch(diplayName, @"^[a-zA-Z0-9 ]*$")) 
+            return false;
+
+        return true;
+    }
+    
+    public bool isUsernameValid(string username)
+    {
+        if (string.IsNullOrEmpty(username)) 
+            return false;
+        if (username.Length < 6 || username.Length > 30) 
+            return false;
+        if (!Regex.IsMatch(username, @"^[a-zA-Z0-9 ]*$")) 
+            return false;
+
+        return true;
+    }
+    
+    public bool isPasswordValid(string password)
+    {
+        if (string.IsNullOrEmpty(password)) {
+            return false;
+        }
+        if (password.Length < 12 || password.Length > 100) {
+            return false;
+        }
+        if (!Regex.IsMatch(password, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).*$")) {
+            return false;
+        }
+
+        return true;
     }
 
 }
