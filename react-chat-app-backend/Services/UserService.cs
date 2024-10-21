@@ -94,15 +94,14 @@ public class UserService : IUserService
         return HttpStatusCode.OK;
     }
     
-    public async Task<HttpStatusCode> GetOnlineStatus(string userId)
+    public async Task<bool> GetOnlineStatus(string userId)
     {
-        var wsClient = _wsManager.Get(userId);
-        
-        if (wsClient?.webSocket.State == WebSocketState.Open) {
-            return HttpStatusCode.OK;
-        } else {
-            return HttpStatusCode.NotFound;
-        }
+        // user can be online on multiple devices
+        var isOnline = _wsManager.All()
+            .Where(wsClient => wsClient.userId == userId)
+            .Any(wsClient => wsClient.webSocket.State == WebSocketState.Open);
+
+        return isOnline;
     }
 
     public bool isDisplayNameValid(string diplayName)
