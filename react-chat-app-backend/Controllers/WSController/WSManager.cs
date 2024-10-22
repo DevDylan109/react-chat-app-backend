@@ -13,6 +13,8 @@ public class WSManager : IWSManager
             webSocket = webSocket,
             userId = userId,
         });
+        
+        LazyClearAbortedConnections();
     }
 
     public WSClient Get(string userId)
@@ -45,5 +47,18 @@ public class WSManager : IWSManager
     public void Clear()
     {
         _connections.Clear();
+    }
+
+    // Voor een of andere reden aborten sommige connecties in azure, lokaal gebeurd dit niet.
+    // Deze connecties blijven voor altijd in de memory, vandaar deze functie
+    private void LazyClearAbortedConnections()
+    {
+        var abortedConnections = All()
+                .Where(client => client.webSocket.State == WebSocketState.Aborted)
+                .Select(client => client.webSocket);
+
+        foreach (var connection in abortedConnections) {
+            Remove(connection);
+        }
     }
 }

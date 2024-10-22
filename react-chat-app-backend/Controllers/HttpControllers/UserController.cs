@@ -1,6 +1,8 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using react_chat_app_backend.Controllers.WSControllers;
+using react_chat_app_backend.DTOs;
 using react_chat_app_backend.Models;
 using react_chat_app_backend.Services;
 using react_chat_app_backend.Services.Interfaces;
@@ -13,11 +15,13 @@ public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly ITokenService _tokenService;
+    private readonly IWSManager _wsManager;
 
-    public UserController(IUserService userService, ITokenService tokenService)
+    public UserController(IUserService userService, ITokenService tokenService, IWSManager wsManager)
     {
         _userService = userService;
         _tokenService = tokenService;
+        _wsManager = wsManager;
     }
 
     [HttpGet("GetUser/{UserId}")]
@@ -86,16 +90,14 @@ public class UserController : ControllerBase
         };
     }
     
-    [HttpPut("ChangeProfilePicture/{UserId}/{imageURL}/{token}")]
-    public async Task<IActionResult> ChangeProfilePicture(string userId, string imageURL, string token)
+    [HttpPut("ChangeProfilePicture")]
+    public async Task<IActionResult> ChangeProfilePicture(ProfilePicture picture)
     {
-        if (_tokenService.IsTokenValid(userId, token) == false) {
+        if (_tokenService.IsTokenValid(picture.UserId, picture.Token) == false) {
             return BadRequest("Token not valid");
         }
         
-        imageURL = Uri.UnescapeDataString(imageURL);
-        
-        var result = await _userService.ChangeProfilePicture(userId, imageURL);
+        var result = await _userService.ChangeProfilePicture(picture.UserId, picture.ImageURL);
         return result switch
         {
             HttpStatusCode.NotFound => NotFound(),
@@ -118,10 +120,11 @@ public class UserController : ControllerBase
     public async Task<IActionResult> FetchStatus(string userId)
     {
         var result = await _userService.GetOnlineStatus(userId);
+        
         return result switch
         {
-            HttpStatusCode.OK => Ok(),
-            HttpStatusCode.NotFound => NotFound()
+            true => Ok(),
+            false => NotFound()
         };
     }
 

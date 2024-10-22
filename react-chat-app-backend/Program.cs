@@ -50,6 +50,9 @@ builder.Services.AddCors(options =>
             builder.WithOrigins("https://lemon-ground-07d72aa03.5.azurestaticapps.net/")
                 .AllowAnyHeader()
                 .AllowAnyMethod();
+            // builder.WithOrigins("http://localhost:3000")
+            //     .AllowAnyHeader()
+            //     .AllowAnyMethod();
         });
 });
 
