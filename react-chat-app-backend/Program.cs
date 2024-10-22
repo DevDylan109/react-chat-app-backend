@@ -11,7 +11,6 @@ using react_chat_app_backend.Services.Interfaces;
 var builder = WebApplication.CreateBuilder(args);
 // var connectionString = builder.Configuration["ConnectionString"];
 
-// Add services to the container
 builder.Services.AddDbContext<AppDbContext>(optionsBuilder => 
     optionsBuilder.UseSqlite("Data Source=Application.db"));
 
@@ -42,17 +41,16 @@ builder.Services.AddScoped<IUserService, UserService>();
 //     });
 // });
 
+var allowedOrigins = builder.Configuration["AllowedOrigins"];
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin",
         builder =>
         {
-            builder.WithOrigins("https://lemon-ground-07d72aa03.5.azurestaticapps.net/")
+            builder.WithOrigins(allowedOrigins)
                 .AllowAnyHeader()
                 .AllowAnyMethod();
-            // builder.WithOrigins("http://localhost:3000")
-            //     .AllowAnyHeader()
-            //     .AllowAnyMethod();
         });
 });
 
@@ -71,10 +69,8 @@ var app = builder.Build();
 
 // app.UseRateLimiter();
 
-// Use CORS policy
 app.UseCors("AllowSpecificOrigin");
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -82,8 +78,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseWebSockets();
-
-//app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
