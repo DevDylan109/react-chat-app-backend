@@ -1,7 +1,9 @@
 using System.Net.WebSockets;
+using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using NuGet.Protocol;
+using react_chat_app_backend.Helpers;
 using react_chat_app_backend.Migrations;
 using react_chat_app_backend.Services;
 using react_chat_app_backend.Services.Interfaces;
@@ -62,8 +64,29 @@ public class WSController : ControllerBase
                     CancellationToken.None);
                 break;   
             }
-            await _wsMessageService.Handle(webSocket, buffer);
+
+            // Get the string without trailing bytes, due to buffer being larger than amount received
+            var str = Encoding.UTF8.GetString(buffer, 0, receiveResult.Count);
+            
+            if (str == "ping") 
+                await Pong(webSocket);
+            else 
+                await _wsMessageService.Handle(webSocket, buffer);
         }
+    }
+    
+    // The client pings the server to check if it's still connected.
+    private async Task Pong(WebSocket webSocket)
+    {
+        var str = "pong";
+        Console.WriteLine("pong");
+        var buffer = Encoding.UTF8.GetBytes(str);
+        
+        await webSocket.SendAsync(buffer,
+            WebSocketMessageType.Text,
+            WebSocketMessageFlags.EndOfMessage,
+            CancellationToken.None
+        );
     }
     
 }
