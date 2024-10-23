@@ -1,11 +1,6 @@
 using System.Net.WebSockets;
 using System.Text;
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
-using NuGet.Protocol;
-using react_chat_app_backend.Helpers;
-using react_chat_app_backend.Migrations;
-using react_chat_app_backend.Services;
 using react_chat_app_backend.Services.Interfaces;
 
 namespace react_chat_app_backend.Controllers.WSControllers;
@@ -46,7 +41,7 @@ public class WSController : ControllerBase
 
     private async Task Listener(WebSocket webSocket)
     {
-        while (true)
+        while (webSocket.State == WebSocketState.Open || webSocket.State == WebSocketState.CloseSent)
         {
             var buffer = new byte[1024 * 4];
             var receiveResult = await webSocket
