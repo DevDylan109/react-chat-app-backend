@@ -79,7 +79,6 @@ public class WSController : ControllerBase
     private async Task Pong(WebSocket webSocket)
     {
         var str = "pong";
-        Console.WriteLine("pong");
         var buffer = Encoding.UTF8.GetBytes(str);
         
         await webSocket.SendAsync(buffer,
