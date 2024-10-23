@@ -11,6 +11,19 @@ using react_chat_app_backend.Services.Interfaces;
 var builder = WebApplication.CreateBuilder(args);
 // var connectionString = builder.Configuration["ConnectionString"];
 
+// builder.Logging.AddAzureWebAppDiagnostics();
+// builder.Services.Configure<AzureFileLoggerOptions>(options =>
+// {
+//     options.FileName = "logs-";
+//     options.FileSizeLimit = 50 * 1024;
+//     options.RetainedFileCountLimit = 5;
+// });
+//
+// builder.Services.Configure<AzureBlobLoggerOptions>(options =>
+// {
+//     options.BlobName = "log.txt";
+// });
+
 builder.Services.AddDbContext<AppDbContext>(optionsBuilder => 
     optionsBuilder.UseSqlite("Data Source=Application.db"));
 

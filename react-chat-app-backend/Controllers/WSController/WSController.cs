@@ -23,12 +23,13 @@ public class WSController : ControllerBase
     {
         string userId = HttpContext.Request.Query["userID"];
         string token = HttpContext.Request.Query["token"];
-        
+
         if (HttpContext.WebSockets.IsWebSocketRequest 
             && _tokenService.IsTokenValid(userId, token)) {
             
             if (!string.IsNullOrEmpty(userId)) {
                 using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
+                
                 _wsManager.Add(userId, webSocket);
                 await _wsMessageService.BroadcastOnlineStatus(userId, "online");
                 await Listener(webSocket);
@@ -41,36 +42,39 @@ public class WSController : ControllerBase
 
     private async Task Listener(WebSocket webSocket)
     {
-        while (webSocket.State == WebSocketState.Open || webSocket.State == WebSocketState.CloseSent)
+        try
         {
-            var buffer = new byte[1024 * 4];
-            var receiveResult = await webSocket
-                .ReceiveAsync(new ArraySegment<byte>(buffer),CancellationToken.None);
-            
-            if (receiveResult.CloseStatus.HasValue)
+            while (webSocket.State == WebSocketState.Open || webSocket.State == WebSocketState.CloseSent)
             {
-                var client = _wsManager.Get(webSocket);
-                await _wsMessageService.BroadcastOnlineStatus(client.userId, "offline");
-                _wsManager.Remove(webSocket);
-                
-                await webSocket.CloseAsync(
-                    receiveResult.CloseStatus.Value,
-                    receiveResult.CloseStatusDescription,
-                    CancellationToken.None);
-                break;   
-            }
-
-            // Get the string without trailing bytes, due to buffer being larger than amount received
-            var str = Encoding.UTF8.GetString(buffer, 0, receiveResult.Count);
+                var buffer = new byte[1024 * 4];
+                var receiveResult = await webSocket
+                    .ReceiveAsync(new ArraySegment<byte>(buffer),CancellationToken.None);
             
-            if (str == "ping") 
-                await Pong(webSocket);
-            else 
-                await _wsMessageService.Handle(webSocket, buffer);
+                if (receiveResult.CloseStatus.HasValue) {
+                    await webSocket.CloseAsync(
+                        receiveResult.CloseStatus.Value,
+                        receiveResult.CloseStatusDescription,
+                        CancellationToken.None);
+                    break;   
+                }
+
+                // Get the string without trailing bytes, due to buffer being larger than amount received
+                var str = Encoding.UTF8.GetString(buffer, 0, receiveResult.Count);
+            
+                if (str == "ping") 
+                    await Pong(webSocket);
+                else 
+                    await _wsMessageService.Handle(webSocket, buffer);
+            }
         }
+        catch (Exception e) {
+            // Exception occurs when a client loses internet connection, I want to ignore this and continue.
+        }
+        
+        await HandleClose(webSocket);
     }
     
-    // The client pings the server to check if it's still connected.
+    // The client pings the server to check if his connection timed out.
     private async Task Pong(WebSocket webSocket)
     {
         var str = "pong";
@@ -82,5 +86,12 @@ public class WSController : ControllerBase
             CancellationToken.None
         );
     }
-    
+
+    private async Task HandleClose(WebSocket webSocket)
+    {
+        var client = _wsManager.Get(webSocket);
+        await _wsMessageService.BroadcastOnlineStatus(client.userId, "offline");
+        _wsManager.Remove(webSocket);
+    }
+
 }
