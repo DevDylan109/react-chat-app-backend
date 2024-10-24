@@ -31,7 +31,8 @@ public class WSController : ControllerBase
                 using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
                 
                 _wsManager.Add(userId, webSocket);
-                await _wsMessageService.BroadcastOnlineStatus(userId, "online");
+                await _wsMessageService.BroadcastMessage(userId,new { userId, status = "online", type = "friendStatus" });
+                
                 await Listener(webSocket);
             }
         } else {
@@ -89,8 +90,9 @@ public class WSController : ControllerBase
 
     private async Task HandleClose(WebSocket webSocket)
     {
-        var client = _wsManager.Get(webSocket);
-        await _wsMessageService.BroadcastOnlineStatus(client.userId, "offline");
+        var userId = _wsManager.Get(webSocket).userId;
+        
+        await _wsMessageService.BroadcastMessage(userId, new { userId, status = "offline", type="friendStatus" });
         _wsManager.Remove(webSocket);
     }
 

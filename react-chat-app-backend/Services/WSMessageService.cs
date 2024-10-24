@@ -170,15 +170,13 @@ public class WSMessageService : IWSMessageService
         );
     }
 
-    public async Task BroadcastOnlineStatus(string userId, string status)
+    public async Task BroadcastMessage(string userId, object obj)
     { 
         var wsClients = _wsManager.All();
-        var payload = new { userId, status, type = "friendStatus" };
-        var buffer = _wsHelpers.ToJsonByteArray(payload);
+        var payload = _wsHelpers.ToJsonByteArray(obj);
 
-        foreach (var wsClient in wsClients)
-        {
-            await SendMessage(wsClient.userId, buffer);
+        foreach (var wsClient in wsClients) {
+            await SendMessage(wsClient.userId, payload);
         }
     }
 

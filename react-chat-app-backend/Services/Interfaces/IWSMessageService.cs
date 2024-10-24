@@ -6,7 +6,7 @@ namespace react_chat_app_backend.Services.Interfaces;
 public interface IWSMessageService
 {
     Task Handle(WebSocket webSocket, byte[] buffer);
-    Task BroadcastOnlineStatus(string userId, string status);
+    Task BroadcastMessage(string userId, object obj);
     Task FetchHistory(WebSocket webSocket, byte[] buffer);
     Task HandleChatMessage(WebSocket webSocket, byte[] buffer);
     Task Store(ChatMessage chatMessage);

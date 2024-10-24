@@ -13,11 +13,13 @@ public class UserService : IUserService
 {
     private IUserRepository _userRepository;
     private IWSManager _wsManager;
+    private IWSMessageService _wsMessageService;
     
-    public UserService(IUserRepository userRepository, IWSManager wsManager)
+    public UserService(IUserRepository userRepository, IWSManager wsManager, IWSMessageService wsMessageService)
     {
         _userRepository = userRepository;
         _wsManager = wsManager;
+        _wsMessageService = wsMessageService;
     }
 
     public async Task<User> GetUser(string userId)
@@ -62,20 +64,17 @@ public class UserService : IUserService
 
     public async Task<HttpStatusCode> CheckUsernameExists(string username)
     {
-        if (await _userRepository.CheckUsernameExists(username))
-        {
+        if (await _userRepository.CheckUsernameExists(username)) {
             return HttpStatusCode.OK;
-        }
-        else
-        {
+            
+        } else {
             return HttpStatusCode.NotFound;
         }
     }
 
     public async Task<HttpStatusCode> ChangeUserName(string userId, string newUsername)
     {
-        if (await CheckUserExists(userId) == false)
-        {
+        if (await CheckUserExists(userId) == false) {
             return HttpStatusCode.NotFound;
         }
         
@@ -85,12 +84,12 @@ public class UserService : IUserService
 
     public async Task<HttpStatusCode> ChangeProfilePicture(string userId, string imageURL)
     {
-        if (await CheckUserExists(userId) == false)
-        {
+        if (await CheckUserExists(userId) == false) {
             return HttpStatusCode.NotFound;
         }
 
         await _userRepository.SetImageURL(userId, imageURL);
+        await _wsMessageService.BroadcastMessage(userId, new { userId, imageURL, type = "changedProfilePicture" });
         return HttpStatusCode.OK;
     }
     

@@ -15,13 +15,11 @@ public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly ITokenService _tokenService;
-    private readonly IWSManager _wsManager;
 
-    public UserController(IUserService userService, ITokenService tokenService, IWSManager wsManager)
+    public UserController(IUserService userService, ITokenService tokenService)
     {
         _userService = userService;
         _tokenService = tokenService;
-        _wsManager = wsManager;
     }
 
     [HttpGet("GetUser/{UserId}")]
