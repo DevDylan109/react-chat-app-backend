@@ -79,8 +79,13 @@ public class UserService : IUserService
         }
         
         await _userRepository.SetUsername(userId, newUsername);
+        await _wsMessageService.BroadcastMessage(userId, 
+            new { userId, newUsername, type = "changedUsername" }
+        );
+        
         return HttpStatusCode.OK;
     }
+
 
     public async Task<HttpStatusCode> ChangeProfilePicture(string userId, string imageURL)
     {
