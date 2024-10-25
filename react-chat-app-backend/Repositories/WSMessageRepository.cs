@@ -29,14 +29,14 @@ public class WSMessageRepository : IWSMessageRepository
             .ToListAsync();
     }
 
-    public async Task<List<ChatMessage>> GetMessageSequence(string userId1, string userId2, int skip, int amount)
+    public async Task<List<ChatMessage>> GetMessageSequence(string userId1, string userId2, int skip, int take)
     {
         return await _appDbContext.Messages.Where(m =>
                 m.senderId == userId1 && m.receiverId == userId2 ||
                 m.senderId == userId2 && m.receiverId == userId1)
             .OrderByDescending(m => m.date) 
             .Skip(skip)
-            .Take(amount)
+            .Take(take)
             // .OrderBy(m => m.date)
             .ToListAsync();
     }

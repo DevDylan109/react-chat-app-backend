@@ -72,7 +72,7 @@ public class WSMessageService : IWSMessageService
         }
         catch (Exception e)
         {
-            buffer = _wsHelpers.ToJsonByteArray(new { message = "An unexpected error occurred on the server. Please try again later.", type = "error" });
+            buffer = _wsHelpers.ToJsonByteArray(new { message = "An unexpected error occurred on the server. Please try again later.", error = e, type = "error" });
             await SendResponseMessage(webSocket, buffer);
         }
     }
