@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using react_chat_app_backend.Controllers.WSControllers;
 using react_chat_app_backend.Models;
 using react_chat_app_backend.Repositories.Interfaces;
+using react_chat_app_backend.Results;
 using react_chat_app_backend.Services.Interfaces;
 
 namespace react_chat_app_backend.Services;
@@ -22,60 +23,54 @@ public class UserService : IUserService
         _wsMessageService = wsMessageService;
     }
 
-    public async Task<User> GetUser(string userId)
-    {
-        return await _userRepository.GetUser(userId);
-    }
+    public async Task<User> GetUser(string userId) =>
+        await _userRepository.GetUser(userId);
     
-    public async Task<HttpStatusCode> CreateUser(string username, string displayname, string password)
+    public async Task<bool> CheckUsernameExists(string username) => 
+        await _userRepository.CheckUsernameExists(username);
+    
+    public async Task<bool> CheckUserExists(string userId) => 
+        await _userRepository.GetUser(userId) != null;
+    
+    public async Task<UserResult> CreateUser(string username, string displayname, string password)
     {
         if (await CheckUserExists(username)) {
-            return HttpStatusCode.Conflict;
+            // return HttpStatusCode.Conflict;
+            return UserResult.UserAlreadyExists();
         }
 
         if (isDisplayNameValid(displayname) == false ||
             isUsernameValid(username) == false ||
             isPasswordValid(password) == false)
         {
-            return HttpStatusCode.BadRequest;
+            // return HttpStatusCode.BadRequest;
+            return UserResult.InputInvalid();
         }
         
         var newUser = new User(username, password, displayname);
         await _userRepository.CreateUser(newUser);
-        return HttpStatusCode.Created;
+        // return HttpStatusCode.Created;
+        return UserResult.UserCreated();
     }
     
-    public async Task<HttpStatusCode> DeleteUser(string userId)
+    public async Task<UserResult> DeleteUser(string userId)
     {
         var user = await _userRepository.GetUser(userId);
 
         if (user == null)
-            return HttpStatusCode.NotFound;
+            // return HttpStatusCode.NotFound;
+            return UserResult.UserNotFound();
 
         await _userRepository.RemoveUser(user);
-        return HttpStatusCode.OK;
-    }
-    
-    public async Task<bool> CheckUserExists(string userId)
-    {
-        var user = await _userRepository.GetUser(userId);
-        return user != null;
+        // return HttpStatusCode.OK;
+        return UserResult.UserDeleted();
     }
 
-    public async Task<HttpStatusCode> CheckUsernameExists(string username)
-    {
-        if (await _userRepository.CheckUsernameExists(username)) {
-            return HttpStatusCode.OK;
-            
-        } else {
-            return HttpStatusCode.NotFound;
-        }
-    }
-
-    public async Task<HttpStatusCode> ChangeUserName(string userId, string newUsername)
+    public async Task<UserResult> ChangeUserName(string userId, string newUsername)
     {
         if (await CheckUserExists(userId) == false) {
-            return HttpStatusCode.NotFound;
+            // return HttpStatusCode.NotFound;
+            return UserResult.UserNotFound();
         }
         
         await _userRepository.SetUsername(userId, newUsername);
@@ -83,19 +78,21 @@ public class UserService : IUserService
             new { userId, newUsername, type = "changedUsername" }
         );
         
-        return HttpStatusCode.OK;
+        // return HttpStatusCode.OK;
+        return UserResult.ChangedUsername();
     }
 
-
-    public async Task<HttpStatusCode> ChangeProfilePicture(string userId, string imageURL)
+    public async Task<UserResult> ChangeProfilePicture(string userId, string imageURL)
     {
         if (await CheckUserExists(userId) == false) {
-            return HttpStatusCode.NotFound;
+            // return HttpStatusCode.NotFound;
+            return UserResult.UserNotFound();
         }
 
         await _userRepository.SetImageURL(userId, imageURL);
         await _wsMessageService.BroadcastMessage(userId, new { userId, imageURL, type = "changedProfilePicture" });
-        return HttpStatusCode.OK;
+        // return HttpStatusCode.OK;
+        return UserResult.ChangedProfilePicture();
     }
     
     public async Task<bool> GetOnlineStatus(string userId)

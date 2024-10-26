@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using react_chat_app_backend.Controllers.WSControllers;
 using react_chat_app_backend.DTOs;
 using react_chat_app_backend.Models;
+using react_chat_app_backend.Results.Enums;
 using react_chat_app_backend.Services;
 using react_chat_app_backend.Services.Interfaces;
 
@@ -30,7 +31,7 @@ public class UserController : ControllerBase
         
         return user switch
         {
-            null => NotFound(),
+            null => NotFound("There is no user with this userID."),
             not null => Ok(user)
         };
     }
@@ -41,7 +42,7 @@ public class UserController : ControllerBase
     {
         var user = await _userService.GetUser(userId);
         var token = _tokenService.CreateAndStore(userId, 120);
-        return user.password == password ? Ok(token) : BadRequest(); 
+        return user.password == password ? Ok(token) : BadRequest("invalid password"); 
     }
     
     [HttpPost("CreateUser/{username}/{displayname}/{password}")]
@@ -50,11 +51,11 @@ public class UserController : ControllerBase
         var result = await _userService.CreateUser(username, displayname, password);
         var token = _tokenService.CreateAndStore(username, 120);
         
-        return result switch
+        return result.UserOutcome switch
         {
-            HttpStatusCode.BadRequest => BadRequest(),
-            HttpStatusCode.Conflict => Conflict(),
-            HttpStatusCode.Created => Ok(token)
+            UserOutcome.InputInvalid => BadRequest(result.Message),
+            UserOutcome.UserAlreadyExists => Conflict(result.Message),
+            UserOutcome.UserCreated => Ok(token)
         };
     }
     
@@ -66,10 +67,10 @@ public class UserController : ControllerBase
         }
         
         var result = await _userService.DeleteUser(userId);
-        return result switch
+        return result.UserOutcome switch
         {
-            HttpStatusCode.NotFound => NotFound(),
-            HttpStatusCode.OK => Ok()
+            UserOutcome.UserNotFound => NotFound(result.Message),
+            UserOutcome.UserDeleted => Ok(result.Message)
         };
     }
 
@@ -81,10 +82,10 @@ public class UserController : ControllerBase
         }
         
         var result = await _userService.ChangeUserName(userId, username);
-        return result switch
+        return result.UserOutcome switch
         {
-            HttpStatusCode.NotFound => NotFound(),
-            HttpStatusCode.OK => Ok()
+            UserOutcome.UserNotFound => NotFound(result.Message),
+            UserOutcome.ChangedUsername => Ok(result.Message)
         };
     }
     
@@ -96,10 +97,10 @@ public class UserController : ControllerBase
         }
         
         var result = await _userService.ChangeProfilePicture(picture.UserId, picture.ImageURL);
-        return result switch
+        return result.UserOutcome switch
         {
-            HttpStatusCode.NotFound => NotFound(),
-            HttpStatusCode.OK => Ok()
+            UserOutcome.UserNotFound => NotFound(result.Message),
+            UserOutcome.ChangedProfilePicture => Ok(result.Message)
         };
     }
     
@@ -109,8 +110,8 @@ public class UserController : ControllerBase
         var result = await _userService.CheckUsernameExists(username);
         return result switch
         {
-            HttpStatusCode.NotFound => NotFound(),
-            HttpStatusCode.OK => Ok()
+            false => NotFound("This username does not exist."),
+            true => Ok("This username exists.")
         };
     }
     
@@ -121,8 +122,8 @@ public class UserController : ControllerBase
         
         return result switch
         {
-            true => Ok(),
-            false => NotFound()
+            true => Ok("This user is online."),
+            false => NotFound("This user is offline.")
         };
     }
 

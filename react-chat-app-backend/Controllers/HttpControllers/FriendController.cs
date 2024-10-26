@@ -1,6 +1,7 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using react_chat_app_backend.Models;
+using react_chat_app_backend.Results.Enums;
 using react_chat_app_backend.Services;
 using react_chat_app_backend.Services.Interfaces;
 
@@ -29,12 +30,13 @@ public class FriendController : ControllerBase
         var result = await _friendShipService
             .StoreAndForwardFriendRequest(initiatorId, acceptorId);
         
-        return result switch
+        return result.Outcome switch
         {
-            HttpStatusCode.BadRequest => BadRequest(),
-            HttpStatusCode.NotFound => NotFound(),
-            HttpStatusCode.Conflict => Conflict(),
-            HttpStatusCode.Created => Created()
+            FriendShipOutcome.UserAddSelf => BadRequest(result.Message),
+            FriendShipOutcome.UserNotFound => NotFound(result.Message),
+            FriendShipOutcome.FriendShipAlreadyAccepted => Conflict(result.Message),
+            FriendShipOutcome.FriendShipIsPending => Conflict(result.Message),
+            FriendShipOutcome.FriendShipCreated => Created()
         };
     }
     
@@ -50,11 +52,11 @@ public class FriendController : ControllerBase
         var result = await _friendShipService
             .AcceptFriendRequest(initiatorId, acceptorId);
         
-        return result switch
+        return result.Outcome switch
         {
-            HttpStatusCode.OK => Ok(),
-            HttpStatusCode.Conflict => Conflict(),
-            HttpStatusCode.NotFound => NotFound()
+            FriendShipOutcome.FriendShipAccepted => Ok(result.Message),
+            FriendShipOutcome.FriendShipAlreadyAccepted => Conflict(result.Message),
+            FriendShipOutcome.FriendShipDoesNotExist => NotFound(result.Message)
         };
     }
 
@@ -70,11 +72,11 @@ public class FriendController : ControllerBase
         var result = await _friendShipService
             .DeclineFriendRequest(initiatorId, acceptorId);
         
-        return result switch
+        return result.Outcome switch
         {
-             HttpStatusCode.OK => Ok(),
-             HttpStatusCode.Conflict => Conflict(),
-             HttpStatusCode.NotFound => NotFound()
+             FriendShipOutcome.FriendShipDeclined => Ok(),
+             FriendShipOutcome.FriendShipAlreadyAccepted => Conflict(),
+             FriendShipOutcome.FriendShipDoesNotExist => NotFound()
         };
     }
     
@@ -86,11 +88,10 @@ public class FriendController : ControllerBase
         }
         
         var result = await _friendShipService.RemoveFriend(userId1, userId2);
-        return result switch
+        return result.Outcome switch
         {
-            HttpStatusCode.OK => Ok(),
-            HttpStatusCode.Conflict => Conflict(),
-            HttpStatusCode.NotFound => NotFound()
+            FriendShipOutcome.FriendShipDeleted => Ok(),
+            FriendShipOutcome.UserNotFound => NotFound()
         };
     }
     

@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using react_chat_app_backend.Models;
 using react_chat_app_backend.Repositories.Interfaces;
+using react_chat_app_backend.Results;
 using react_chat_app_backend.Services.Interfaces;
 
 namespace react_chat_app_backend.Services;
@@ -19,46 +20,56 @@ public class FriendShipService : IFriendShipService
         _userService = userService;
     }
 
-    public async Task<List<User>> GetFriendsOfUser(string userId)
-    {
-        return await _friendShipRepository.GetFriendsOfUser(userId);
-    }
+    public async Task<List<User>> GetFriendsOfUser(string userId) => 
+        await _friendShipRepository.GetFriendsOfUser(userId);
+    
 
-    public async Task<List<User>> GetIncomingFriendRequestsOfUser(string userId)
-    {
-        return await _friendShipRepository.GetIncomingFriendRequestsOfUser(userId);
-    }
+    public async Task<List<User>> GetIncomingFriendRequestsOfUser(string userId) => 
+        await _friendShipRepository.GetIncomingFriendRequestsOfUser(userId);
+    
 
-    public async Task<List<User>> GetOutgoingFriendRequestsOfUser(string userId)
-    {
-        return await _friendShipRepository.GetOutgoingFriendRequestsOfUser(userId);
-    }
+    public async Task<List<User>> GetOutgoingFriendRequestsOfUser(string userId) =>
+         await _friendShipRepository.GetOutgoingFriendRequestsOfUser(userId);
+    
 
-    public async Task<HttpStatusCode> StoreAndForwardFriendRequest(string initiatorId, string acceptorId)
+    public async Task<FriendShipResult> StoreAndForwardFriendRequest(string initiatorId, string acceptorId)
     {
         if (acceptorId == initiatorId)
-            return HttpStatusCode.BadRequest;
-        
-        if (await _userService.CheckUserExists(acceptorId) == false)
-            return HttpStatusCode.NotFound;
+            // return HttpStatusCode.BadRequest;
+            return FriendShipResult.UserAddSelf();
 
-        if (await CheckFriendshipExists(initiatorId, acceptorId)) 
-            return HttpStatusCode.Conflict;
+        if (await _userService.CheckUserExists(acceptorId) == false)
+            // return HttpStatusCode.NotFound;
+            return FriendShipResult.UserNotFound();
+
+        if (await CheckFriendshipExists(initiatorId, acceptorId))
+        {
+            if (await CheckFriendshipPending(initiatorId, acceptorId))
+            {
+                return FriendShipResult.FriendShipIsPending();
+            }
+            
+            // return HttpStatusCode.Conflict;
+            return FriendShipResult.FriendShipAlreadyAccepted();
+        }
         
         await StoreFriendRequest(initiatorId, acceptorId);
         var json = JsonSerializer.Serialize(new { initiatorId, acceptorId, type = "friendRequestReceived" });
         await _wsMessageService.SendToUser(acceptorId, json);
 
-        return HttpStatusCode.Created;
+        // return HttpStatusCode.Created;
+        return FriendShipResult.FriendShipCreated(acceptorId);
     }
     
-    public async Task<HttpStatusCode> AcceptFriendRequest(string initiatorId, string acceptorId)
+    public async Task<FriendShipResult> AcceptFriendRequest(string initiatorId, string acceptorId)
     {
         if (await CheckFriendshipExists(initiatorId, acceptorId) == false)
-            return HttpStatusCode.NotFound;
+            // return HttpStatusCode.NotFound;
+            return FriendShipResult.FriendShipDoesNotExist();
 
         if (await CheckFriendshipPending(initiatorId, acceptorId) == false)
-            return HttpStatusCode.Conflict;
+            // return HttpStatusCode.Conflict;
+            return FriendShipResult.FriendShipAlreadyAccepted();
         
         // lookup friend request in database
         var friendship = await _friendShipRepository.GetFriendShip(initiatorId, acceptorId);
@@ -73,22 +84,25 @@ public class FriendShipService : IFriendShipService
         
         await _wsMessageService.SendToUser(initiatorId, json);
 
-        return HttpStatusCode.OK;
+        // return HttpStatusCode.OK;
+        return FriendShipResult.FriendRequestAccepted();
     }
     
-    public async Task<HttpStatusCode> DeclineFriendRequest(string initiatorId, string acceptorId)
+    public async Task<FriendShipResult> DeclineFriendRequest(string initiatorId, string acceptorId)
     {
-        var statusCode = HttpStatusCode.OK;
+        // var statusCode = HttpStatusCode.OK;
         
         // lookup friend request in database
         var friendship = await _friendShipRepository.GetFriendShip(initiatorId, acceptorId);
 
-        if (await CheckFriendshipExists(initiatorId, acceptorId) == false) 
-            statusCode = HttpStatusCode.NotFound;
+        if (await CheckFriendshipExists(initiatorId, acceptorId) == false)
+            // statusCode = HttpStatusCode.NotFound;
+            return FriendShipResult.FriendShipDoesNotExist();
         
         // delete this friend request only if it hasn't already been accepted
         if (await CheckFriendshipPending(initiatorId, acceptorId) == false) 
-            statusCode = HttpStatusCode.Conflict;
+            // statusCode = HttpStatusCode.Conflict;
+            return FriendShipResult.FriendShipAlreadyAccepted();
         
         await _friendShipRepository.RemoveFriendShip(friendship);
         var json = JsonSerializer.Serialize(
@@ -96,13 +110,15 @@ public class FriendShipService : IFriendShipService
         );
         await _wsMessageService.SendToUser(initiatorId, json);
         
-        return statusCode;
+        // return statusCode;
+        return FriendShipResult.FriendRequestDeclined();
     }
     
-    public async Task<HttpStatusCode> RemoveFriend(string userId1, string userId2)
+    public async Task<FriendShipResult> RemoveFriend(string userId1, string userId2)
     {
         if (await CheckFriendshipExists(userId1, userId2) == false)
-            return HttpStatusCode.NotFound;
+            // return HttpStatusCode.NotFound;
+            return FriendShipResult.FriendShipDoesNotExist();
         
         await _friendShipRepository.RemoveFriendShip(userId1, userId2);
         var json = JsonSerializer.Serialize(
@@ -110,7 +126,8 @@ public class FriendShipService : IFriendShipService
         );
         await _wsMessageService.SendToUser(userId2, json);
         
-        return HttpStatusCode.OK;
+        // return HttpStatusCode.OK;
+        return FriendShipResult.FriendShipDeleted();
     }
     
     public async Task<UserFriendShip> StoreFriendRequest(string senderId, string receiverId)
