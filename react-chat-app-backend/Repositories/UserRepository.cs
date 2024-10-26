@@ -23,7 +23,13 @@ public class UserRepository : IUserRepository
     
     public async Task<User?> GetUser(string userId)
     {
-        return await _appDbContext.Users.FirstOrDefaultAsync(ur => ur.userId == userId);
+        var user = await _appDbContext.Users.FirstOrDefaultAsync(ur => ur.userId == userId);
+        
+        if (user != null) {
+            await _appDbContext.Entry(user).ReloadAsync();
+        }
+
+        return user;
     }
 
     public async Task RemoveUser(User user)
