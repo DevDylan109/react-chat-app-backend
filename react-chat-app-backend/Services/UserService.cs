@@ -35,7 +35,6 @@ public class UserService : IUserService
     public async Task<UserResult> CreateUser(string username, string displayname, string password)
     {
         if (await CheckUserExists(username)) {
-            // return HttpStatusCode.Conflict;
             return UserResult.UserAlreadyExists();
         }
 
@@ -43,13 +42,11 @@ public class UserService : IUserService
             isUsernameValid(username) == false ||
             isPasswordValid(password) == false)
         {
-            // return HttpStatusCode.BadRequest;
             return UserResult.InputInvalid();
         }
         
         var newUser = new User(username, password, displayname);
         await _userRepository.CreateUser(newUser);
-        // return HttpStatusCode.Created;
         return UserResult.UserCreated();
     }
     
@@ -58,18 +55,15 @@ public class UserService : IUserService
         var user = await _userRepository.GetUser(userId);
 
         if (user == null)
-            // return HttpStatusCode.NotFound;
             return UserResult.UserNotFound();
 
         await _userRepository.RemoveUser(user);
-        // return HttpStatusCode.OK;
         return UserResult.UserDeleted();
     }
 
     public async Task<UserResult> ChangeUserName(string userId, string newUsername)
     {
         if (await CheckUserExists(userId) == false) {
-            // return HttpStatusCode.NotFound;
             return UserResult.UserNotFound();
         }
         
@@ -78,20 +72,17 @@ public class UserService : IUserService
             new { userId, newUsername, type = "changedUsername" }
         );
         
-        // return HttpStatusCode.OK;
         return UserResult.ChangedUsername();
     }
 
     public async Task<UserResult> ChangeProfilePicture(string userId, string imageURL)
     {
         if (await CheckUserExists(userId) == false) {
-            // return HttpStatusCode.NotFound;
             return UserResult.UserNotFound();
         }
 
         await _userRepository.SetImageURL(userId, imageURL);
         await _wsMessageService.BroadcastMessage(userId, new { userId, imageURL, type = "changedProfilePicture" });
-        // return HttpStatusCode.OK;
         return UserResult.ChangedProfilePicture();
     }
     

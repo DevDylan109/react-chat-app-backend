@@ -35,40 +35,34 @@ public class FriendShipService : IFriendShipService
     public async Task<FriendShipResult> StoreAndForwardFriendRequest(string initiatorId, string acceptorId)
     {
         if (acceptorId == initiatorId)
-            // return HttpStatusCode.BadRequest;
             return FriendShipResult.UserAddSelf();
 
         if (await _userService.CheckUserExists(acceptorId) == false)
-            // return HttpStatusCode.NotFound;
             return FriendShipResult.UserNotFound();
 
-        if (await CheckFriendshipExists(initiatorId, acceptorId))
-        {
-            if (await CheckFriendshipPending(initiatorId, acceptorId))
-            {
+        if (await CheckFriendshipExists(initiatorId, acceptorId)) {
+            
+            if (await CheckFriendshipPending(initiatorId, acceptorId)) {
                 return FriendShipResult.FriendShipIsPending();
             }
             
-            // return HttpStatusCode.Conflict;
             return FriendShipResult.FriendShipAlreadyAccepted();
         }
         
         await StoreFriendRequest(initiatorId, acceptorId);
+        
         var json = JsonSerializer.Serialize(new { initiatorId, acceptorId, type = "friendRequestReceived" });
         await _wsMessageService.SendToUser(acceptorId, json);
-
-        // return HttpStatusCode.Created;
+        
         return FriendShipResult.FriendShipCreated(acceptorId);
     }
     
     public async Task<FriendShipResult> AcceptFriendRequest(string initiatorId, string acceptorId)
     {
         if (await CheckFriendshipExists(initiatorId, acceptorId) == false)
-            // return HttpStatusCode.NotFound;
             return FriendShipResult.FriendShipDoesNotExist();
 
         if (await CheckFriendshipPending(initiatorId, acceptorId) == false)
-            // return HttpStatusCode.Conflict;
             return FriendShipResult.FriendShipAlreadyAccepted();
         
         // lookup friend request in database
@@ -83,50 +77,45 @@ public class FriendShipService : IFriendShipService
         );
         
         await _wsMessageService.SendToUser(initiatorId, json);
-
-        // return HttpStatusCode.OK;
+        
         return FriendShipResult.FriendRequestAccepted();
     }
     
     public async Task<FriendShipResult> DeclineFriendRequest(string initiatorId, string acceptorId)
     {
-        // var statusCode = HttpStatusCode.OK;
-        
         // lookup friend request in database
         var friendship = await _friendShipRepository.GetFriendShip(initiatorId, acceptorId);
 
         if (await CheckFriendshipExists(initiatorId, acceptorId) == false)
-            // statusCode = HttpStatusCode.NotFound;
             return FriendShipResult.FriendShipDoesNotExist();
         
         // delete this friend request only if it hasn't already been accepted
         if (await CheckFriendshipPending(initiatorId, acceptorId) == false) 
-            // statusCode = HttpStatusCode.Conflict;
             return FriendShipResult.FriendShipAlreadyAccepted();
         
         await _friendShipRepository.RemoveFriendShip(friendship);
+        
         var json = JsonSerializer.Serialize(
             new { declinerId = acceptorId, type = "friendRequestResponse" }
         );
         await _wsMessageService.SendToUser(initiatorId, json);
         
-        // return statusCode;
         return FriendShipResult.FriendRequestDeclined();
     }
     
     public async Task<FriendShipResult> RemoveFriend(string userId1, string userId2)
     {
         if (await CheckFriendshipExists(userId1, userId2) == false)
-            // return HttpStatusCode.NotFound;
             return FriendShipResult.FriendShipDoesNotExist();
         
         await _friendShipRepository.RemoveFriendShip(userId1, userId2);
+        
         var json = JsonSerializer.Serialize(
             new { userId = userId1, type = "removedFriend" }
         );
+        
         await _wsMessageService.SendToUser(userId2, json);
         
-        // return HttpStatusCode.OK;
         return FriendShipResult.FriendShipDeleted();
     }
     
