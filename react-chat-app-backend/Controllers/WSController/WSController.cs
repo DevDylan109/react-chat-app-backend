@@ -32,12 +32,15 @@ public class WSController : ControllerBase
             && _tokenService.IsTokenValid(userId, token)) {
             
             if (!string.IsNullOrEmpty(userId)) {
+                
                 using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
+                
                 _wsManager.Add(userId, webSocket);
                 
                 _timer = new Timer(CheckTimeout, webSocket, _pingInterval, _pingInterval);
                 
                 await _wsMessageService.BroadcastMessage(userId,new { userId, status = "online", type = "friendStatus" });
+                
                 await Listener(webSocket);
             }
         } else {
@@ -63,7 +66,7 @@ public class WSController : ControllerBase
                         CancellationToken.None);
                     break;   
                 }
-
+                
                 // Get the string without trailing bytes, due to buffer being larger than amount receive,
                 // to make strings compare correctly
                 var str = Encoding.UTF8.GetString(buffer, 0, receiveResult.Count);
