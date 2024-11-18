@@ -32,7 +32,7 @@ public class WSMessageService : IWSMessageService
         _wsHelpers = new WSHelpers();
     }
 
-    public async Task Handle(WebSocket webSocket, byte[] buffer)
+    public async Task HandleIncomingMessage(WebSocket webSocket, byte[] buffer)
     {
         var messageType = _wsHelpers.GetMessageType(buffer);
         switch (messageType)
@@ -64,7 +64,7 @@ public class WSMessageService : IWSMessageService
         }
         catch (Exception e)
         {
-            await SendResponse(webSocket, new { message = "An unexpected error occurred on the server. Please try again later.", type = "error" });
+            await SendResponse(webSocket, new { e.Message, type = "error" });
         }
     }
 
@@ -85,7 +85,7 @@ public class WSMessageService : IWSMessageService
         }
         catch (Exception e)
         {
-            await SendResponse(webSocket, new { message = "An unexpected error occurred on the server. Please try again later.", type = "error" });
+            await SendResponse(webSocket, new { e.Message, type = "error" });
         }
     }
 
