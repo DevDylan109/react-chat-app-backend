@@ -50,9 +50,7 @@ public class FriendShipService : IFriendShipService
         }
         
         await StoreFriendRequest(initiatorId, acceptorId);
-        
-        var json = JsonSerializer.Serialize(new { initiatorId, acceptorId, type = "friendRequestReceived" });
-        await _wsMessageService.SendToUser(acceptorId, json);
+        await _wsMessageService.SendMessage(acceptorId, new { initiatorId, acceptorId, type = "friendRequestReceived" });
         
         return FriendShipResult.FriendShipCreated(acceptorId);
     }
@@ -72,11 +70,7 @@ public class FriendShipService : IFriendShipService
         await _friendShipRepository.SetFriendShipStatus(friendship, false);
 
         // let the user who sent out the request know that it has been accepted
-        var json = JsonSerializer.Serialize(
-            new { acceptorId, type = "friendRequestResponse" }
-        );
-        
-        await _wsMessageService.SendToUser(initiatorId, json);
+        await _wsMessageService.SendMessage(initiatorId, new { acceptorId, type = "friendRequestResponse" });
         
         return FriendShipResult.FriendRequestAccepted();
     }
@@ -94,11 +88,7 @@ public class FriendShipService : IFriendShipService
             return FriendShipResult.FriendShipAlreadyAccepted();
         
         await _friendShipRepository.RemoveFriendShip(friendship);
-        
-        var json = JsonSerializer.Serialize(
-            new { declinerId = acceptorId, type = "friendRequestResponse" }
-        );
-        await _wsMessageService.SendToUser(initiatorId, json);
+        await _wsMessageService.SendMessage(initiatorId, new { declinerId = acceptorId, type = "friendRequestResponse" });
         
         return FriendShipResult.FriendRequestDeclined();
     }
@@ -109,12 +99,7 @@ public class FriendShipService : IFriendShipService
             return FriendShipResult.FriendShipDoesNotExist();
         
         await _friendShipRepository.RemoveFriendShip(userId1, userId2);
-        
-        var json = JsonSerializer.Serialize(
-            new { userId = userId1, type = "removedFriend" }
-        );
-        
-        await _wsMessageService.SendToUser(userId2, json);
+        await _wsMessageService.SendMessage(userId2, new { userId = userId1, type = "removedFriend" });
         
         return FriendShipResult.FriendShipDeleted();
     }
