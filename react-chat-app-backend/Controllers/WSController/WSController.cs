@@ -33,14 +33,19 @@ public class WSController : ControllerBase
             
             if (!string.IsNullOrEmpty(userId)) {
                 
+                // Handshake
                 using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
                 
+                // Cache userid with socket, so that server knows which socket belongs to which user
                 _wsManager.Add(userId, webSocket);
                 
+                // Start timer window for checking if a wsocket connection timed out
                 _timer = new Timer(CheckTimeout, webSocket, _pingInterval, _pingInterval);
                 
+                // Notify currently connected users that this user connected/went online
                 await _wsMessageService.BroadcastMessage(userId,new { userId, status = "online", type = "friendStatus" });
                 
+                // Start listening to incoming wsocket messages
                 await Listener(webSocket);
             }
         } else {
@@ -55,10 +60,13 @@ public class WSController : ControllerBase
         {
             while (webSocket.State == WebSocketState.Open || webSocket.State == WebSocketState.CloseSent)
             {
+                
+                // Cache the incoming websocket message
                 var buffer = new byte[1024 * 4];
                 var receiveResult = await webSocket
                     .ReceiveAsync(new ArraySegment<byte>(buffer),CancellationToken.None);
             
+                // Checks if client closed connection
                 if (receiveResult.CloseStatus.HasValue) {
                     await webSocket.CloseAsync(
                         receiveResult.CloseStatus.Value,
@@ -74,7 +82,7 @@ public class WSController : ControllerBase
                 if (str == "ping") 
                     await Pong(webSocket);
                 else 
-                    await _wsMessageService.Handle(webSocket, buffer);
+                    await _wsMessageService.HandleIncomingMessage(webSocket, buffer);
             }
         }
         catch (Exception e)
@@ -100,7 +108,7 @@ public class WSController : ControllerBase
         );
     }
 
-    // The server will abort the connection when client hasn't sent a ping within the timeframe
+    // Abort the connection when client hasn't sent a ping within the timeframe
     private void CheckTimeout(object webSocket)
     {
         var socket = (WebSocket) webSocket;
@@ -114,12 +122,14 @@ public class WSController : ControllerBase
 
     private async Task HandleClose(WebSocket webSocket)
     {
+        // Notify currently connected user that this user disconnected/went offline
         var userId = _wsManager.Get(webSocket).userId;
-        
         await _wsMessageService.BroadcastMessage(userId, new { userId, status = "offline", type="friendStatus" });
-        _wsManager.Remove(webSocket);
-
+        
         await _timer.DisposeAsync();
+        
+        // Remove unused wsocket from cache
+        _wsManager.Remove(webSocket);
     }
 
 }
