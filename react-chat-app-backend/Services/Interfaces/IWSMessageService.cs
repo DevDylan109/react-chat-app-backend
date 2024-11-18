@@ -7,9 +7,7 @@ public interface IWSMessageService
 {
     Task Handle(WebSocket webSocket, byte[] buffer);
     Task BroadcastMessage(string userId, object obj);
+    Task SendMessage(string userId, object obj);
     Task FetchHistory(WebSocket webSocket, byte[] buffer);
     Task HandleChatMessage(WebSocket webSocket, byte[] buffer);
-    Task Store(ChatMessage chatMessage);
-    Task Forward(ChatMessage chatMessage);
-    Task SendToUser(string userId, string json);
 }
