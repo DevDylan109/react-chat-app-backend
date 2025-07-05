@@ -145,10 +145,9 @@ public class WSMessageService : IWSMessageService
     public async Task BroadcastMessage(string userId, object obj)
     { 
         var wsClients = _wsManager.All();
-        var payload = _wsHelpers.ObjectToJsonByteArray(obj);
-
+        
         foreach (var wsClient in wsClients) {
-            await SendMessage(wsClient.userId, payload);
+            await SendMessage(wsClient.userId, obj);
         }
     }
 
