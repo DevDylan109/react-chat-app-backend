@@ -71,7 +71,6 @@ public class WSMessageService : IWSMessageService
     public async Task HandleChatMessage(WebSocket webSocket, byte[] buffer)
     {
         var chatMessage = _wsHelpers.ByteArrayToObject<ChatMessage>(buffer);
-        chatMessage.token = ""; // recipient user can steal the token
         
         try
         {
@@ -79,12 +78,25 @@ public class WSMessageService : IWSMessageService
                 && await CheckFriendshipPending(chatMessage.senderId, chatMessage.receiverId) == false
                  && _tokenService.IsTokenValid(chatMessage.senderId, chatMessage.token))
             {
+                chatMessage.token = ""; // prevent recipient from stealing token
                 await _wsMessageRepository.StoreMessage(chatMessage);
                 await SendMessage(chatMessage.receiverId, new { chatMessage, type = "chatMessage" });
+                
+            }
+            else
+            {
+                Console.WriteLine($"is token valid: {_tokenService.IsTokenValid(chatMessage.senderId, chatMessage.token)}");
+                Console.WriteLine($"user: {chatMessage.senderId} token: {chatMessage.token}");
+                
+                foreach (var token in _tokenService.Retrieve(chatMessage.senderId))
+                {
+                    Console.WriteLine($"token: {token}");
+                }
             }
         }
         catch (Exception e)
         {
+            Console.WriteLine($"Error: {e.Message}");
             await SendResponse(webSocket, new { e.Message, type = "error" });
         }
     }
